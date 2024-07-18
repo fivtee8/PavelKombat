@@ -1,5 +1,5 @@
 import sqlite3
-from flask import Flask
+from flask import Flask, request
 
 app = Flask(__name__)
 
@@ -24,7 +24,7 @@ def return_click(playerid=0):
     res = cur.execute(f'SELECT clicks FROM Players WHERE tgid = {playerid}').fetchone()
 
     if res is None:
-        res = '-1'
+        res = '0'
     else:
         res = str(res[0])
 
@@ -32,11 +32,46 @@ def return_click(playerid=0):
 
     return res
 
-
+"""
+# Old registration!
 @app.route('/put/register/<tgid>/<usr>/<name>/<last>')
 def register(tgid='', usr='', name='', last=''):
     try:
         values_str = str(tgid) + ', "' +  '", "'.join([usr, name, last, "0"]) + '"'
+        # print("Executing: " + f'INSERT INTO Players (tgid, username, firstname, lastname) VALUES ({values_str})')
+        cur.execute(f'INSERT INTO Players (tgid, username, firstname, lastname, banned) VALUES ({values_str})')
+        cur.execute(f'UPDATE PLayers SET clicks = 0 WHERE tgid = {tgid}')
+        cur.execute('COMMIT')
+    except sqlite3.OperationalError:
+        return {'message': 'operationalError!'}
+
+    except Exception:
+        return {'message': 'Other exception...'}
+
+    return {'message': 'success'}
+"""
+
+
+@app.route('/botapi/check_registered/<tgid>')
+def check_registered(tgid=0):
+    res = cur.execute(f'SELECT clicks FROM Players WHERE tgid = {tgid}').fetchone()
+
+    if res is None:
+        return {'registered': '0'}
+    else:
+        return {'registered': '1'}
+
+
+@app.route('/botapi/register_user/<tgid>')
+def register(tgid=0):
+    params = request.json
+
+    name = params['name']
+    last = params['last']
+    usr = params['usr']
+
+    try:
+        values_str = str(tgid) + ', "' + '", "'.join([usr, name, last, "0"]) + '"'
         # print("Executing: " + f'INSERT INTO Players (tgid, username, firstname, lastname) VALUES ({values_str})')
         cur.execute(f'INSERT INTO Players (tgid, username, firstname, lastname, banned) VALUES ({values_str})')
         cur.execute(f'UPDATE PLayers SET clicks = 0 WHERE tgid = {tgid}')
@@ -54,8 +89,13 @@ def register(tgid='', usr='', name='', last=''):
 def update_clicks(tgid=0, count=''):
     banned = False
 
-    res = cur.execute(f'SELECT banned FROM Players WHERE tgid = {tgid}').fetchone()[0]
+    res = cur.execute(f'SELECT banned FROM Players WHERE tgid = {tgid}').fetchone()
     banned = bool(int(res))
+
+    if res is None:
+        return {'banned': 0, 'clicks': '0'}
+    else:
+        res = res[0]
 
     if banned:
         print('Thwarted banned request')

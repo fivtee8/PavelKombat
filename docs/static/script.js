@@ -51,11 +51,11 @@ function fetchStartDate() {
 function updateClickCount(data) {
     count = data.clicks;
 
-    if (count === '-1') {
+/*    if (count === '-1') {
         registerUser();
         count = 0;
     }
-
+*/
     oldCount = count;
 
     console.log("Fetched click count: " + count);
