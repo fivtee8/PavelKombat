@@ -1,5 +1,7 @@
+import os
 import sqlite3
 import json
+import dotenv
 
 import flask
 from flask import Flask, request
@@ -94,8 +96,49 @@ def register(tgid=0):
     return resp
 
 
-@app.route('/put/clickcount/<tgid>/<count>')
-def update_clicks(tgid=0, count=''):
+@app.route('/botapi/set_await_query_id/<tgid>/<key>')
+def set_awaiting_query_id(tgid=0, key=0):
+    if int(key) != int(os.getenv('botkey')):
+        return {'code': '2'}
+
+    try:
+        cur.execute(f'UPDATE Players SET awaiting_query = 1 WHERE tgid = {tgid}')
+        cur.execute('COMMIT')
+    except sqlite3.OperationalError:
+        return {'code': '1'}
+
+    return {'code': '0'}
+
+
+@app.route('/botapi/unawait_query/<tgid>')
+def unawait_query(tgid=0):
+    try:
+        cur.execute(f'UPDATE Players SET awaiting_query = 0 WHERE tgid = {tgid}')
+        cur.execute('COMMIT')
+    except sqlite3.OperationalError:
+        return {'code': '1'}
+
+    print('unawaited')
+    return {'code': '0'}
+
+
+@app.route('/put/query_id/<tgid>/<query_id>')
+def set_query_id(tgid=0, query_id=''):
+    print('running')
+    awaiting_query = (cur.execute(f'SELECT awaiting_query FROM Players WHERE tgid = {tgid}').fetchone()[0] == 1)
+    if awaiting_query:
+        cur.execute(f'UPDATE Players SET query_id = "{query_id}" WHERE tgid = {tgid}')
+        cur.execute(f'UPDATE Players SET awaiting_query = 0 WHERE tgid = {tgid}')
+        cur.execute('COMMIT')
+        print('updated query')
+    else:
+        print(f'Unawaited query')
+
+    return {}
+
+
+@app.route('/put/clickcount/<tgid>/<query_id>/<count>')
+def update_clicks(tgid=0, query_id='', count=''):
     banned = False
 
     res = cur.execute(f'SELECT banned FROM Players WHERE tgid = {tgid}').fetchone()
@@ -121,6 +164,13 @@ def update_clicks(tgid=0, count=''):
     count = int(count)
 
     if count < 0 or count > 60:
+        banned = True
+
+    #Check if query_id matches
+
+    good_query = cur.execute(f'SELECT query_id FROM Players WHERE tgid = {tgid}').fetchone()[0]
+
+    if good_query != query_id:
         banned = True
 
     if banned:

@@ -1,5 +1,6 @@
 import json
 import os
+import time
 import asyncio
 import requests
 
@@ -43,8 +44,16 @@ async def start_handler(message: types.Message):
                                                 web_app=types.WebAppInfo(url='https://fivtee8.github.io/PavelKombat/'))]]
     keyboard = types.InlineKeyboardMarkup(inline_keyboard=keyboard_set)
 
-    await message.answer("Начни тапать Павла Сергеевича!", reply_markup=keyboard)
+    set_await = requests.get(f'https://fond-pangolin-lately.ngrok-free.app/botapi/set_await_query_id/{message.from_user.id}/{os.getenv("botkey")}')
 
+    if set_await.json()['code'] == '0':
+        sent = await message.answer("Начни тапать Павла Сергеевича! \n Данное сообщение будет удалено через 15 секунд для предотвращения аттак.", reply_markup=keyboard)
+        await asyncio.sleep(15)
+        await bot.delete_message(sent.chat.id, message.message_id)
+        await bot.delete_message(sent.chat.id, sent.message_id)
+        requests.get(f'https://fond-pangolin-lately.ngrok-free.app/botapi/unawait_query/{message.from_user.id}')
+    else:
+        await message.answer('Ошибка' + set_await.json()['code'])
 
 '''
 @dp.callback_query(F.data == 'lets_go')
