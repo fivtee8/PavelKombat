@@ -18,12 +18,7 @@ async def start_handler(message: types.Message):
     keyboard_set = [[types.InlineKeyboardButton(text='Тапать!',
                                                 web_app=types.WebAppInfo(url='https://fivtee8.github.io/PavelKombat/'))]]
     keyboard = types.InlineKeyboardMarkup(inline_keyboard=keyboard_set)
-
-    # keyboard_set = [[types.KeyboardButton(text="Тапать!", web_app=types.WebAppInfo('https://fivtee8.github.io/PavelKombat/'))]]
-    # keyboard = types.ReplyKeyboardMarkup(keyboard=keyboard_set, resize_keyboard=True)
-
     await message.answer("Начни тапать Павла Сергеевича!", reply_markup=keyboard)
-    # await message.reply(text="text", reply_markup=keyboard)
 
 
 '''
