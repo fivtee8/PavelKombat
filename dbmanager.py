@@ -103,6 +103,7 @@ def set_awaiting_query_id(tgid=0, key=0):
 
     try:
         cur.execute(f'UPDATE Players SET awaiting_query = 1 WHERE tgid = {tgid}')
+        cur.execute('COMMIT')
     except sqlite3.OperationalError:
         return {'code': '1'}
 
@@ -111,9 +112,14 @@ def set_awaiting_query_id(tgid=0, key=0):
 
 @app.route('/put/query_id/<tgid>/<query_id>')
 def set_query_id(tgid=0, query_id=''):
+    print('running')
     awaiting_query = (cur.execute(f'SELECT awaiting_query FROM Players WHERE tgid = {tgid}').fetchone()[0] == 1)
     if awaiting_query:
         cur.execute(f'UPDATE Players SET query_id = {query_id} WHERE tgid = {tgid}')
+        cur.execute('COMMIT')
+        print('updated query')
+    else:
+        print(f'Unawaited query')
 
 
 @app.route('/put/clickcount/<tgid>/<query_id>/<count>')
