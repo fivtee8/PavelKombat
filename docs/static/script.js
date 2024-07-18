@@ -72,6 +72,9 @@ function registerUser () {
     if (!temp_last) temp_last = 'na';
     if (!temp_usr) temp_usr = 'na';
 
+    console.log('New names: ' + temp_name + '; ' + temp_last + '; ' + temp_usr)
+
+
     loadJSON('https://fond-pangolin-lately.ngrok-free.app/put/register/' + tgId + '/' + temp_usr + '/' + temp_name + '/' + temp_last, handleRegistrationResponse);
     console.log('Sent registration request!')
 }
