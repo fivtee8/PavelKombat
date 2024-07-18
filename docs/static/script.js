@@ -25,8 +25,8 @@ function setupApp() {
 }
 
 function sendQueryId () {
+    let queryId = tg.initDataUnsafe.query_id;
     loadJSON('https://fond-pangolin-lately.ngrok-free.app/put/query_id/' + tgId + '/' + queryId, doNothing);
-
 }
 
 function doNothing(data) {
