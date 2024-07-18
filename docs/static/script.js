@@ -8,8 +8,6 @@ var tgId;
 fetchStartDate();
 setupApp();
 
-var updater = setInterval(doUpdate, 5000);
-
 function doUpdate() {
     updateClock();
     sendClicks();
@@ -21,6 +19,7 @@ function setupApp() {
     console.log("User Id: " + tg.initDataUnsafe.user.id);
     tgId = tg.initDataUnsafe.user.id;
     fetchClickCount();
+    var updater = setInterval(doUpdate, 5000);
 }
 
 function sendClicks() {
