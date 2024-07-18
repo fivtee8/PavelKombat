@@ -61,6 +61,7 @@ function updateClickCount(data) {
     console.log("Fetched click count: " + count);
 }
 
+/*
 function registerUser () {
     let temp_name = tg.initDataUnsafe.user.first_name;
     let temp_last = tg.initDataUnsafe.user.last_name;
@@ -85,6 +86,7 @@ function handleRegistrationResponse (data) {
     }
     else console.log('Registration failed...');
 }
+*/
 
 function updateStartDate(data) {
     startDate = new Date(data.time).getTime();
