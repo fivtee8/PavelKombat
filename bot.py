@@ -26,7 +26,15 @@ async def start_handler(message: types.Message):
 
     if status_req.json()['registered'] == '0':
         data = {'usr': message.from_user.username, 'name': message.from_user.first_name, 'last': message.from_user.last_name}
-        register_req = requests.post(f'https://fond-pangolin-lately.ngrok-free.app/botapi/register_user/{message.from_user.id}', data=data)
+        headers = {'Content-Type': 'application/json'}
+
+        for k in list(data.keys()):
+            if not data[k]:
+                data[k] = 'n/a'
+
+        data = json.dumps(data)
+
+        register_req = requests.get(f'https://fond-pangolin-lately.ngrok-free.app/botapi/register_user/{message.from_user.id}', data=data, headers=headers)
 
         if not (register_req.json()['message'] == 'success'):
             print('registration error!')

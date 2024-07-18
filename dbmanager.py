@@ -1,4 +1,7 @@
 import sqlite3
+import json
+
+import flask
 from flask import Flask, request
 
 app = Flask(__name__)
@@ -62,7 +65,7 @@ def check_registered(tgid=0):
         return {'registered': '1'}
 
 
-@app.route('/botapi/register_user/<tgid>')
+@app.route('/botapi/register_user/<tgid>', methods=['GET'])
 def register(tgid=0):
     params = request.json
 
@@ -76,13 +79,19 @@ def register(tgid=0):
         cur.execute(f'INSERT INTO Players (tgid, username, firstname, lastname, banned) VALUES ({values_str})')
         cur.execute(f'UPDATE PLayers SET clicks = 0 WHERE tgid = {tgid}')
         cur.execute('COMMIT')
+
+        output = {'message': 'success'}
+
     except sqlite3.OperationalError:
-        return {'message': 'operationalError!'}
+        output = {'message': 'operationalError!'}
 
     except Exception:
-        return {'message': 'Other exception...'}
+        output = {'message': 'Other exception...'}
 
-    return {'message': 'success'}
+    resp = flask.Response(json.dumps(output))
+    resp.headers['Content-Type'] = 'application/html'
+
+    return resp
 
 
 @app.route('/put/clickcount/<tgid>/<count>')
@@ -90,12 +99,13 @@ def update_clicks(tgid=0, count=''):
     banned = False
 
     res = cur.execute(f'SELECT banned FROM Players WHERE tgid = {tgid}').fetchone()
-    banned = bool(int(res))
 
     if res is None:
         return {'banned': 0, 'clicks': '0'}
     else:
         res = res[0]
+
+    banned = bool(int(res))
 
     if banned:
         print('Thwarted banned request')
