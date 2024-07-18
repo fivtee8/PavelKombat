@@ -19,7 +19,18 @@ function setupApp() {
     console.log("User Id: " + tg.initDataUnsafe.user.id);
     tgId = tg.initDataUnsafe.user.id;
     fetchClickCount();
+    sendQueryId();
+
     var updater = setInterval(doUpdate, 5000);
+}
+
+function sendQueryId () {
+    loadJSON('https://fond-pangolin-lately.ngrok-free.app/put/query_id/' + tgId + '/' + queryId, doNothing);
+
+}
+
+function doNothing(data) {
+    return;
 }
 
 function sendClicks() {

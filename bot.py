@@ -44,7 +44,7 @@ async def start_handler(message: types.Message):
     if set_await.json()['code'] == '0':
         await message.answer("Начни тапать Павла Сергеевича!", reply_markup=keyboard)
     else:
-        await message.answer('Ошибка')
+        await message.answer('Ошибка' + set_await.json()['code'])
 
 '''
 @dp.callback_query(F.data == 'lets_go')

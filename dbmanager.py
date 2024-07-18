@@ -98,7 +98,7 @@ def register(tgid=0):
 
 @app.route('/botapi/set_await_query_id/<tgid>/<key>')
 def set_awaiting_query_id(tgid=0, key=0):
-    if key != int(os.getenv('botkey')):
+    if int(key) != int(os.getenv('botkey')):
         return {'code': '2'}
 
     try:
