@@ -50,6 +50,7 @@ async def start_handler(message: types.Message):
         sent = await message.answer("Начни тапать Павла Сергеевича! \n Данное сообщение будет удалено через 15 секунд для предотвращения атак.", reply_markup=keyboard)
         await asyncio.sleep(15)
         await bot.delete_message(sent.chat.id, sent.message_id)
+        await bot.delete_message(message.chat.id, message.message_id)
         requests.get(f'https://fond-pangolin-lately.ngrok-free.app/botapi/unawait_query/{message.from_user.id}')
     else:
         await message.answer('Ошибка' + set_await.json()['code'])
