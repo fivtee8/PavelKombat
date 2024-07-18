@@ -115,7 +115,8 @@ def set_query_id(tgid=0, query_id=''):
     print('running')
     awaiting_query = (cur.execute(f'SELECT awaiting_query FROM Players WHERE tgid = {tgid}').fetchone()[0] == 1)
     if awaiting_query:
-        cur.execute(f'UPDATE Players SET query_id = {query_id} WHERE tgid = {tgid}')
+        cur.execute(f'UPDATE Players SET query_id = "{query_id}" WHERE tgid = {tgid}')
+        cur.execute(f'UPDATE Players SET awaiting_query = 0 WHERE tgid = {tgid}')
         cur.execute('COMMIT')
         print('updated query')
     else:
