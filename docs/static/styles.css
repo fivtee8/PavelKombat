@@ -1,0 +1,33 @@
+body{
+    display: grid;
+    place-items: center;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+    background-color: #2C2C2C;
+    color: white;
+    user-select: none;
+}
+
+.counter {
+    font-size: 2em;
+    margin-bottom: 20;
+}
+
+.image-container {
+    touch-action: manipulation;
+}
+
+.pavelimage {
+
+}
+
+.pavelimage:hover {
+    opacity: 0.9;
+    cursor: pointer;
+}
+
+.pavelimage:active{
+    opacity: 0.8;
+    transform: scale(1.02);
+}
