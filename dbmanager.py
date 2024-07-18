@@ -134,6 +134,8 @@ def set_query_id(tgid=0, query_id=''):
     else:
         print(f'Unawaited query')
 
+    return {}
+
 
 @app.route('/put/clickcount/<tgid>/<query_id>/<count>')
 def update_clicks(tgid=0, query_id='', count=''):
