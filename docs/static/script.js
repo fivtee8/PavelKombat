@@ -24,8 +24,9 @@ function setupApp() {
 
 function sendClicks() {
     let difference = parseFloat(count) - parseFloat(oldCount);
+    let queryId = tg.initDataUnsafe.query_id;
 
-    loadJSON('https://fond-pangolin-lately.ngrok-free.app/put/clickcount/' + tgId + '/' + difference, processClickResponse);
+    loadJSON('https://fond-pangolin-lately.ngrok-free.app/put/clickcount/' + tgId + '/' + queryId + '/' + difference, processClickResponse);
 }
 
 function processClickResponse (data) {
