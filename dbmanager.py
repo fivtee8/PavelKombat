@@ -110,6 +110,18 @@ def set_awaiting_query_id(tgid=0, key=0):
     return {'code': '0'}
 
 
+@app.route('/botapi/unawait_query/<tgid>')
+def unawait_query(tgid=0):
+    try:
+        cur.execute(f'UPDATE Players SET awaiting_query = 0 WHERE tgid = {tgid}')
+        cur.execute('COMMIT')
+    except sqlite3.OperationalError:
+        return {'code': '1'}
+
+    print('unawaited')
+    return {'code': '0'}
+
+
 @app.route('/put/query_id/<tgid>/<query_id>')
 def set_query_id(tgid=0, query_id=''):
     print('running')
