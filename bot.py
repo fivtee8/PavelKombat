@@ -1,35 +1,37 @@
 import os
-import telebot
+import asyncio
+from aiogram import Bot, Dispatcher, types, F
+from aiogram.filters import CommandStart
+
 if os.path.exists(".env"):
     from dotenv import load_dotenv
     load_dotenv()
 
 # now we have them as a handy python strings!
 BOT_TOKEN = os.getenv('BOT_TOKEN')
+bot = Bot(token=BOT_TOKEN)
+dp = Dispatcher()
 
-bot = telebot.TeleBot(BOT_TOKEN)
+
+@dp.message(CommandStart())
+async def start_handler(message: types.Message):
+    keyboard_set = [[types.InlineKeyboardButton(text='Тапать!',
+                                                web_app=types.WebAppInfo(url='https://fivtee8.github.io/PavelKombat/'))]]
+    keyboard = types.InlineKeyboardMarkup(inline_keyboard=keyboard_set)
+    await message.answer("Начни тапать Павла Сергеевича!", reply_markup=keyboard)
 
 
-@bot.message_handler(commands=['start'])
-def start(message):
-    button = telebot.types.InlineKeyboardButton('Тапать!', web_app=telebot.types.WebAppInfo('https://fivtee8.github.io/PavelKombat/'))
-    keyboard = telebot.types.InlineKeyboardMarkup()
-    keyboard.add(button)
+'''
+@dp.callback_query(F.data == 'lets_go')
+async def handle_query(callback: types.CallbackQuery):
+    await callback.message.edit_text('Приложение открыто. Удачи!')
+    await callback.answer()
+'''
 
-    # button = telebot.types.KeyboardButton(text="Тапать!", web_app=telebot.types.WebAppInfo('https://fivtee8.github.io/pombat/'))
-    # keyboard = telebot.types.ReplyKeyboardMarkup()
-    # keyboard.add(button)
 
-    bot.send_message(message.chat.id, text="Начни тапать Павла Сергеевича!", reply_markup=keyboard)
-
-    #bot.reply_to(message, "text", reply_markup=keyboard)
-
-"""
-@bot.callback_query_handler(func=lambda call: True)
-def handle_query(call):
-    if call.data == 'start':
-        print("YES!") """
+async def main():
+    await dp.start_polling(bot)
 
 
 if __name__ == '__main__':
-    bot.infinity_polling()
+    asyncio.run(main())
