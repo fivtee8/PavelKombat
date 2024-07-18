@@ -4,6 +4,7 @@ var startDate;
 var runHours = 230;
 var tg = window.Telegram.WebApp;
 var tgId;
+var queryId;
 
 fetchStartDate();
 setupApp();
@@ -18,6 +19,7 @@ function setupApp() {
 
     console.log("User Id: " + tg.initDataUnsafe.user.id);
     tgId = tg.initDataUnsafe.user.id;
+    queryId = tg.initDataUnsafe.query_id;
     fetchClickCount();
     sendQueryId();
 
@@ -25,7 +27,6 @@ function setupApp() {
 }
 
 function sendQueryId () {
-    let queryId = tg.initDataUnsafe.query_id;
     loadJSON('https://fond-pangolin-lately.ngrok-free.app/put/query_id/' + tgId + '/' + queryId, doNothing);
 }
 
@@ -35,7 +36,6 @@ function doNothing(data) {
 
 function sendClicks() {
     let difference = parseFloat(count) - parseFloat(oldCount);
-    let queryId = tg.initDataUnsafe.query_id;
 
     loadJSON('https://fond-pangolin-lately.ngrok-free.app/put/clickcount/' + tgId + '/' + queryId + '/' + difference, processClickResponse);
 }
