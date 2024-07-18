@@ -12,7 +12,7 @@ bot = telebot.TeleBot(BOT_TOKEN)
 
 @bot.message_handler(commands=['start'])
 def start(message):
-    button = telebot.types.InlineKeyboardButton('Тапать!', web_app=telebot.types.WebAppInfo('https://fivtee8.github.io/pombat/'))
+    button = telebot.types.InlineKeyboardButton('Тапать!', web_app=telebot.types.WebAppInfo('https://fivtee8.github.io/PavelKombat/'))
     keyboard = telebot.types.InlineKeyboardMarkup()
     keyboard.add(button)
 
