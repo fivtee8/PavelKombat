@@ -18,6 +18,10 @@ def before_request():
     dotenv.load_dotenv()
 
 
+@app.route('/')
+def hello():
+    return {'message': 'You have reached the server! Everything is functional.'}
+
 @app.route('/request/starttime/')
 def start_time():
     res = cur.execute('SELECT Value FROM Params WHERE Key="starttime"')
