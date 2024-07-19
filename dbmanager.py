@@ -25,6 +25,19 @@ async def hello():
     return {'message': 'You have reached the server! Everything is functional.'}
 
 
+@app.route('/request/banned/<tgid>')
+async def check_banned(tgid=0):
+    res = await (await cur.execute(f'SELECT banned FROM Players WHERE tgid = {tgid}')).fetchone()
+
+    if res is None:
+        return {'banned': '0'}
+
+    if res[0] == '0':
+        return {'banned': '0'}
+
+    return {'banned': '1'}
+
+
 @app.route('/request/starttime/')
 async def start_time():
     res = await cur.execute('SELECT Value FROM Params WHERE Key="starttime"')
