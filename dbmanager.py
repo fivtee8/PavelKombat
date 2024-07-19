@@ -1,38 +1,41 @@
 import os
-import sqlite3
+import aiosqlite
+import uvicorn
 import json
 import dotenv
+from asgiref.wsgi import WsgiToAsgi
 
 import flask
 from flask import Flask, request
 
 app = Flask(__name__)
+asgi_app = WsgiToAsgi(app)
 
 
 @app.before_request
-def before_request():
+async def before_request():
     global cur
-    con = sqlite3.connect('database.db')
-    cur = con.cursor()
-
+    con = await aiosqlite.connect('database.db')
+    cur = await con.cursor()
     dotenv.load_dotenv()
 
 
 @app.route('/')
-def hello():
+async def hello():
     return {'message': 'You have reached the server! Everything is functional.'}
 
+
 @app.route('/request/starttime/')
-def start_time():
-    res = cur.execute('SELECT Value FROM Params WHERE Key="starttime"')
-    res = {'time': str(res.fetchone()[0])}
+async def start_time():
+    res = await cur.execute('SELECT Value FROM Params WHERE Key="starttime"')
+    res = {'time': str((await res.fetchone())[0])}
 
     return res
 
 
 @app.route('/request/clickcount/<playerid>')
-def return_click(playerid=0):
-    res = cur.execute(f'SELECT clicks FROM Players WHERE tgid = {playerid}').fetchone()
+async def return_click(playerid=0):
+    res = await (await cur.execute(f'SELECT clicks FROM Players WHERE tgid = {playerid}')).fetchone()
 
     if res is None:
         res = '0'
@@ -64,8 +67,8 @@ def register(tgid='', usr='', name='', last=''):
 
 
 @app.route('/botapi/check_registered/<tgid>')
-def check_registered(tgid=0):
-    res = cur.execute(f'SELECT clicks FROM Players WHERE tgid = {tgid}').fetchone()
+async def check_registered(tgid=0):
+    res = await (await cur.execute(f'SELECT clicks FROM Players WHERE tgid = {tgid}')).fetchone()
 
     if res is None:
         return {'registered': '0'}
@@ -74,7 +77,7 @@ def check_registered(tgid=0):
 
 
 @app.route('/botapi/register_user/<tgid>', methods=['GET'])
-def register(tgid=0):
+async def register(tgid=0):
     params = request.json
 
     name = params['name']
@@ -84,13 +87,13 @@ def register(tgid=0):
     try:
         values_str = str(tgid) + ', "' + '", "'.join([usr, name, last, "0"]) + '"'
         # print("Executing: " + f'INSERT INTO Players (tgid, username, firstname, lastname) VALUES ({values_str})')
-        cur.execute(f'INSERT INTO Players (tgid, username, firstname, lastname, banned) VALUES ({values_str})')
-        cur.execute(f'UPDATE PLayers SET clicks = 0 WHERE tgid = {tgid}')
-        cur.execute('COMMIT')
+        await cur.execute(f'INSERT INTO Players (tgid, username, firstname, lastname, banned) VALUES ({values_str})')
+        await cur.execute(f'UPDATE PLayers SET clicks = 0 WHERE tgid = {tgid}')
+        await cur.execute('COMMIT')
 
         output = {'message': 'success'}
 
-    except sqlite3.OperationalError:
+    except aiosqlite.OperationalError:
         output = {'message': 'operationalError!'}
 
     except Exception:
@@ -103,25 +106,25 @@ def register(tgid=0):
 
 
 @app.route('/botapi/set_await_query_id/<tgid>/<key>')
-def set_awaiting_query_id(tgid=0, key=0):
+async def set_awaiting_query_id(tgid=0, key=0):
     if int(key) != int(os.getenv('botkey')):
         return {'code': '2'}
 
     try:
-        cur.execute(f'UPDATE Players SET awaiting_query = 1 WHERE tgid = {tgid}')
-        cur.execute('COMMIT')
-    except sqlite3.OperationalError:
+        await cur.execute(f'UPDATE Players SET awaiting_query = 1 WHERE tgid = {tgid}')
+        await cur.execute('COMMIT')
+    except aiosqlite.OperationalError:
         return {'code': '1'}
 
     return {'code': '0'}
 
 
 @app.route('/botapi/unawait_query/<tgid>')
-def unawait_query(tgid=0):
+async def unawait_query(tgid=0):
     try:
-        cur.execute(f'UPDATE Players SET awaiting_query = 0 WHERE tgid = {tgid}')
-        cur.execute('COMMIT')
-    except sqlite3.OperationalError:
+        await cur.execute(f'UPDATE Players SET awaiting_query = 0 WHERE tgid = {tgid}')
+        await cur.execute('COMMIT')
+    except aiosqlite.OperationalError:
         return {'code': '1'}
 
     print('unawaited')
@@ -129,13 +132,13 @@ def unawait_query(tgid=0):
 
 
 @app.route('/put/query_id/<tgid>/<query_id>')
-def set_query_id(tgid=0, query_id=''):
+async def set_query_id(tgid=0, query_id=''):
     print('running')
-    awaiting_query = (cur.execute(f'SELECT awaiting_query FROM Players WHERE tgid = {tgid}').fetchone()[0] == 1)
+    awaiting_query = ((await (await cur.execute(f'SELECT awaiting_query FROM Players WHERE tgid = {tgid}')).fetchone())[0] == 1)
     if awaiting_query:
-        cur.execute(f'UPDATE Players SET query_id = "{query_id}" WHERE tgid = {tgid}')
-        cur.execute(f'UPDATE Players SET awaiting_query = 0 WHERE tgid = {tgid}')
-        cur.execute('COMMIT')
+        await cur.execute(f'UPDATE Players SET query_id = "{query_id}" WHERE tgid = {tgid}')
+        await cur.execute(f'UPDATE Players SET awaiting_query = 0 WHERE tgid = {tgid}')
+        await cur.execute('COMMIT')
         print('updated query')
     else:
         print(f'Unawaited query')
@@ -144,10 +147,10 @@ def set_query_id(tgid=0, query_id=''):
 
 
 @app.route('/put/clickcount/<tgid>/<query_id>/<count>')
-def update_clicks(tgid=0, query_id='', count=''):
+async def update_clicks(tgid=0, query_id='', count=''):
     banned = False
 
-    res = cur.execute(f'SELECT banned FROM Players WHERE tgid = {tgid}').fetchone()
+    res = await (await cur.execute(f'SELECT banned FROM Players WHERE tgid = {tgid}')).fetchone()
 
     if res is None:
         return {'banned': 0, 'clicks': '0'}
@@ -172,25 +175,26 @@ def update_clicks(tgid=0, query_id='', count=''):
     if count < 0 or count > 60:
         banned = True
 
-    #Check if query_id matches
+    # Check if query_id matches
 
-    good_query = cur.execute(f'SELECT query_id FROM Players WHERE tgid = {tgid}').fetchone()[0]
+    good_query = await (await (await cur.execute(f'SELECT query_id FROM Players WHERE tgid = {tgid}')).fetchone())[0]
 
     if good_query != query_id:
         banned = True
 
     if banned:
-        cur.execute(f'UPDATE Players SET banned = "1" WHERE tgid = {tgid}')
-        cur.execute('COMMIT')
+        await cur.execute(f'UPDATE Players SET banned = "1" WHERE tgid = {tgid}')
+        await cur.execute('COMMIT')
         return {'banned': '1'}
 
-    current_clicks = cur.execute(f'SELECT clicks FROM Players WHERE tgid = {tgid}').fetchone()[0]
+    current_clicks = await (await (await cur.execute(f'SELECT clicks FROM Players WHERE tgid = {tgid}')).fetchone())[0]
     new_clicks = current_clicks + count
-    cur.execute(f'UPDATE Players SET clicks = {new_clicks} WHERE tgid = {tgid}')
-    cur.execute('COMMIT')
+    await cur.execute(f'UPDATE Players SET clicks = {new_clicks} WHERE tgid = {tgid}')
+    await cur.execute('COMMIT')
 
     return {'banned': '0', 'clicks': str(new_clicks)}
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5005)
+    # app.run(debug=True, port=5005)
+    uvicorn.run(asgi_app, port=5005)
