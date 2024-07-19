@@ -2,58 +2,65 @@ import json
 import os
 import time
 import asyncio
-import requests
-
+import aiohttp
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters import CommandStart
 
+
 if os.path.exists(".env"):
     from dotenv import load_dotenv
+
     load_dotenv()
 
 # now we have them as a handy python strings!
 BOT_TOKEN = os.getenv('BOT_TOKEN')
+#BOT_TOKEN = '7222962419:AAEwitRvI5MPoj1JF-S2jaHL2G2FqXNhvjM'
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 
 
 @dp.message(CommandStart())
 async def start_handler(message: types.Message):
-    status_req = requests.get(
-        f'https://fond-pangolin-lately.ngrok-free.app/botapi/check_registered/{message.from_user.id}')
-
-    if status_req.json()['registered'] == '0':
-        data = {'usr': message.from_user.username, 'name': message.from_user.first_name,
-                'last': message.from_user.last_name}
-        headers = {'Content-Type': 'application/json'}
-
-        for k in list(data.keys()):
-            if not data[k]:
-                data[k] = 'n/a'
-
-        data = json.dumps(data)
-
-        register_req = requests.get(
-            f'https://fond-pangolin-lately.ngrok-free.app/botapi/register_user/{message.from_user.id}',
-            data=data,
-            headers=headers)
-
-        if not (register_req.json()['message'] == 'success'):
+    async with aiohttp.ClientSession() as session:
+        async with session.get(
+                f'https://fond-pangolin-lately.ngrok-free.app/botapi/check_registered/{message.from_user.id}') as status_req:
+            print(type(await status_req.json()))
+            status = await status_req.json()
+        if status['registered'] == '0':
+            data = {'usr': message.from_user.username, 'name': message.from_user.first_name,
+                    'last': message.from_user.last_name}
+            headers = {'Content-Type': 'application/json'}
+            for k in list(data.keys()):
+                if not data[k]:
+                    data[k] = 'n/a'
+            data = json.dumps(data)
+        async with session.get(
+                f'https://fond-pangolin-lately.ngrok-free.app/botapi/register_user/{message.from_user.id}',
+                data=data,
+                headers=headers) as register_req:
+            register = await register_req.json(content_type='application/json')
+        if not register['message'] == 'success':
             print('registration error!')
     keyboard_set = [[types.InlineKeyboardButton(text='Тапать!',
-                                                web_app=types.WebAppInfo(url='https://fivtee8.github.io/PavelKombat/'))]]
+                                                web_app=types.WebAppInfo(
+                                                    url='https://fivtee8.github.io/PavelKombat/'))]]
     keyboard = types.InlineKeyboardMarkup(inline_keyboard=keyboard_set)
-
-    set_await = requests.get(f'https://fond-pangolin-lately.ngrok-free.app/botapi/set_await_query_id/{message.from_user.id}/{os.getenv("botkey")}')
-
-    if set_await.json()['code'] == '0':
-        sent = await message.answer("Начни тапать Павла Сергеевича! \n Данное сообщение будет удалено через 15 секунд для предотвращения атак.", reply_markup=keyboard)
+    async with aiohttp.ClientSession() as session:
+        async with session.get(
+                f'https://fond-pangolin-lately.ngrok-free.app/botapi/set_await_query_id/{message.from_user.id}/{os.getenv("botkey")}') as set_await:
+            set_await_json = await set_await.json()
+    if set_await_json['code'] == '0':
+        sent = await message.answer(
+            "Начни тапать Павла Сергеевича! \n Данное сообщение будет удалено через 15 секунд для предотвращения атак.",
+            reply_markup=keyboard)
         await asyncio.sleep(15)
         await bot.delete_message(sent.chat.id, sent.message_id)
         await bot.delete_message(message.chat.id, message.message_id)
-        requests.get(f'https://fond-pangolin-lately.ngrok-free.app/botapi/unawait_query/{message.from_user.id}')
+        async with aiohttp.ClientSession() as session:
+            await session.get(f'https://fond-pangolin-lately.ngrok-free.app/botapi/unawait_query/{message.from_user.id}')
     else:
-        await message.answer('Ошибка' + set_await.json()['code'])
+        await message.answer('Ошибка' + set_await_json['code'])
+
 
 '''
 @dp.callback_query(F.data == 'lets_go')
