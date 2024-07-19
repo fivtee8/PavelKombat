@@ -4,6 +4,7 @@ var startDate;
 var runHours = 230;
 var tg = window.Telegram.WebApp;
 var tgId;
+var queryId;
 
 fetchStartDate();
 setupApp();
@@ -18,14 +19,25 @@ function setupApp() {
 
     console.log("User Id: " + tg.initDataUnsafe.user.id);
     tgId = tg.initDataUnsafe.user.id;
+    queryId = tg.initDataUnsafe.query_id;
     fetchClickCount();
+    sendQueryId();
+
     var updater = setInterval(doUpdate, 5000);
+}
+
+function sendQueryId () {
+    loadJSON('https://fond-pangolin-lately.ngrok-free.app/put/query_id/' + tgId + '/' + queryId, doNothing);
+}
+
+function doNothing(data) {
+    return;
 }
 
 function sendClicks() {
     let difference = parseFloat(count) - parseFloat(oldCount);
 
-    loadJSON('https://fond-pangolin-lately.ngrok-free.app/put/clickcount/' + tgId + '/' + difference, processClickResponse);
+    loadJSON('https://fond-pangolin-lately.ngrok-free.app/put/clickcount/' + tgId + '/' + queryId + '/' + difference, processClickResponse);
 }
 
 function processClickResponse (data) {
@@ -51,16 +63,17 @@ function fetchStartDate() {
 function updateClickCount(data) {
     count = data.clicks;
 
-    if (count === '-1') {
+/*    if (count === '-1') {
         registerUser();
         count = 0;
     }
-
+*/
     oldCount = count;
 
     console.log("Fetched click count: " + count);
 }
 
+/*
 function registerUser () {
     let temp_name = tg.initDataUnsafe.user.first_name;
     let temp_last = tg.initDataUnsafe.user.last_name;
@@ -85,6 +98,7 @@ function handleRegistrationResponse (data) {
     }
     else console.log('Registration failed...');
 }
+*/
 
 function updateStartDate(data) {
     startDate = new Date(data.time).getTime();
