@@ -15,6 +15,8 @@ def before_request():
     con = sqlite3.connect('database.db')
     cur = con.cursor()
 
+    dotenv.load_dotenv()
+
 
 @app.route('/request/starttime/')
 def start_time():
