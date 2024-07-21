@@ -1,3 +1,4 @@
+import json
 import unittest
 import requests
 import sqlite3
@@ -104,3 +105,37 @@ class TestServer(unittest.TestCase):
         # clean up
         cur.execute('DELETE FROM Players WHERE tgid = 1')
         cur.execute('COMMIT')
+
+    def test_register(self):
+        # staging
+        con = sqlite3.connect('../database.db')
+        cur = con.cursor()
+        cur.execute('DELETE FROM Players WHERE tgid = 1')
+        cur.execute('COMMIT')
+
+        for name in ["hello", 'привет', '☃☃☃☃']:
+            data = {'usr': 'usr', 'name': name,
+                    'last': 'last'}
+            data = json.dumps(data)
+            headers = {'Content-Type': 'application/json'}
+
+            try:
+                raw_message = requests.get('http://127.0.0.1:5005/botapi/register_user/1', data=data, headers=headers)
+                message = raw_message.json()['message']
+            except requests.exceptions.JSONDecodeError:
+                self.fail('Request failed. Text: ' + raw_message.text)
+
+            if message != 'success':
+                self.fail(message)
+
+            username, firstname, lastname, clicks, banned = cur.execute('SELECT username, firstname, lastname, clicks, banned FROM Players WHERE tgid = 1').fetchone()
+
+            self.assertEqual(username, 'usr', 'Wrong username')
+            self.assertEqual(lastname, 'last', 'lastname wrong')
+            self.assertEqual(clicks, 0)
+            self.assertEqual(banned, '0')
+            self.assertEqual(firstname, name, f'Error registering name {name}')
+
+            # clean up
+            cur.execute('DELETE FROM Players WHERE tgid = 1')
+            cur.execute('COMMIT')
