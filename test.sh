@@ -1,4 +1,5 @@
 ./stopserver.sh
+python3 tests/clear_db.py
 fuser database.db 2>/dev/null | xargs kill -9
 ./startserver.sh
 python3 -m unittest discover tests --verbose 2> logs/test_out.txt

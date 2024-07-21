@@ -7,13 +7,6 @@ import dotenv
 
 
 class TestServer(unittest.TestCase):
-    def setUp(self):
-        con = sqlite3.connect('database.db')
-        cur = con.cursor()
-        cur.execute('DELETE FROM Players WHERE tgid = 1')
-        cur.execute('COMMIT')
-        con.close()
-
     def test_hello(self):
         req = requests.get('http://127.0.0.1:5005/').json()
         message = req['message']
