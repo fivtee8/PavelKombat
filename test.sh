@@ -1,5 +1,5 @@
 ./stopserver.sh
-fuser database.db 2>/dev/null | xargs kill -9
+fuser database.db 2>/dev/null | xargs kill -9 > /dev/null 2> /dev/null
 ./startserver.sh
 python3 tests/clear_db.py
 while ! nc -z localhost 4040; do
