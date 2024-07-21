@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DBPID=$(ps aux | grep '[d]bmanagaer.py' | awk '{print $2}')
+DBPID=$(ps aux | grep '[d]bmanager.py' | awk '{print $2}')
 BOTPID=$(ps aux | grep '[b]ot.py' | awk '{print $2}')
 NGROKPID=$(ps aux | grep '[n]grok' | awk '{print $2}')
 
