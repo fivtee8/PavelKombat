@@ -214,7 +214,7 @@ async def update_clicks(tgid=0, query_id='', count=''):
         await cur.execute('COMMIT')
         return {'banned': '1'}
 
-    current_clicks = await (await (await cur.execute(f'SELECT clicks FROM Players WHERE tgid = {tgid}')).fetchone())[0]
+    current_clicks = (await (await cur.execute(f'SELECT clicks FROM Players WHERE tgid = {tgid}')).fetchone())[0]
     new_clicks = current_clicks + count
     await cur.execute(f'UPDATE Players SET clicks = {new_clicks} WHERE tgid = {tgid}')
     await cur.execute('COMMIT')
