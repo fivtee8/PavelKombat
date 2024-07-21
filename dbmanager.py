@@ -3,21 +3,35 @@ import aiosqlite
 import uvicorn
 import json
 import dotenv
+import asyncio
 from asgiref.wsgi import WsgiToAsgi
 
 import flask
 from flask import Flask, request
 
-app = Flask(__name__)
-asgi_app = WsgiToAsgi(app)
+
+async def create_app():
+    my_app = Flask(__name__)
+    global cur
+    print("Configuring...")
+    cur = await aiosqlite.connect('database.db')
+    dotenv.load_dotenv()
+    print("Finished")
+
+    return my_app
 
 
+app = asyncio.run(create_app())
+
+
+"""
 @app.before_request
 async def before_request():
     global cur
     con = await aiosqlite.connect('database.db')
     cur = await con.cursor()
     dotenv.load_dotenv()
+"""
 
 
 @app.route('/')
@@ -30,7 +44,7 @@ async def check_banned(tgid=0):
     res = await (await cur.execute(f'SELECT banned FROM Players WHERE tgid = {tgid}')).fetchone()
 
     if res is None:
-        return {'banned': '0'}
+        return {'banned': '2'}
 
     if res[0] == '0':
         return {'banned': '0'}
@@ -210,4 +224,5 @@ async def update_clicks(tgid=0, query_id='', count=''):
 
 if __name__ == '__main__':
     # app.run(debug=True, port=5005)
+    asgi_app = WsgiToAsgi(app)
     uvicorn.run(asgi_app, port=5005)
