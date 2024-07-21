@@ -139,3 +139,46 @@ class TestServer(unittest.TestCase):
             # clean up
             cur.execute('DELETE FROM Players WHERE tgid = 1')
             cur.execute('COMMIT')
+
+    def test_update_clicks(self):
+        # staging
+        con = sqlite3.connect('../database.db')
+        cur = con.cursor()
+        cur.execute('DELETE FROM Players WHERE tgid = 1')
+        cur.execute('INSERT INTO Players (tgid, clicks, banned, query_id) VALUES (1, 100, "0", "dev")')
+        cur.execute('COMMIT')
+
+        # test good path
+        try:
+            response = requests.get('http://127.0.0.1:5005/put/clickcount/1/dev/11').json()
+            self.assertEqual(response['banned'], '0')
+            self.assertEqual(response['clicks'], '111')
+        except requests.exceptions.JSONDecodeError:
+            self.fail('Server error')
+
+        for click_count in [-1, 100, 'yabadaba']:
+            cur.execute('DELETE FROM Players WHERE tgid = 1')
+            cur.execute('INSERT INTO Players (tgid, clicks, banned, query_id) VALUES (1, 100, "0", "dev")')
+            cur.execute('COMMIT')
+
+            try:
+                response = requests.get(f'http://127.0.0.1:5005/put/clickcount/1/dev/{click_count}').json()
+                self.assertEqual(response['banned'], '1')
+                self.assertEqual(response['clicks'], '100')
+            except requests.exceptions.JSONDecodeError:
+                self.fail('Server error')
+
+        cur.execute('DELETE FROM Players WHERE tgid = 1')
+        cur.execute('INSERT INTO Players (tgid, clicks, banned, query_id) VALUES (1, 100, "1", "dev")')
+        cur.execute('COMMIT')
+
+        try:
+            response = requests.get(f'http://127.0.0.1:5005/put/clickcount/1/dev/{click_count}').json()
+            self.assertEqual(response['banned'], '1')
+            self.assertEqual(response['clicks'], '100')
+        except requests.exceptions.JSONDecodeError:
+            self.fail('Server error')
+
+        # clean up
+        cur.execute('DELETE FROM Players WHERE tgid = 1')
+        cur.execute('COMMIT')
