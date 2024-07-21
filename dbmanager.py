@@ -193,26 +193,26 @@ async def update_clicks(tgid=0, query_id='', count=''):
         count = float(count)
     except ValueError:
         banned = True
+    else:
+        if count - int(count) != 0:
+            banned = True
 
-    if count - int(count) != 0:
-        banned = True
+        count = int(count)
 
-    count = int(count)
+        if count < 0 or count > 60:
+            banned = True
 
-    if count < 0 or count > 60:
-        banned = True
+        # Check if query_id matches
 
-    # Check if query_id matches
+        good_query = (await (await cur.execute(f'SELECT query_id FROM Players WHERE tgid = {tgid}')).fetchone())[0]
 
-    good_query = (await (await cur.execute(f'SELECT query_id FROM Players WHERE tgid = {tgid}')).fetchone())[0]
-
-    if good_query != query_id:
-        banned = True
+        if good_query != query_id:
+            banned = True
 
     if banned:
         await cur.execute(f'UPDATE Players SET banned = "1" WHERE tgid = {tgid}')
         await cur.execute('COMMIT')
-        return {'banned': '1'}
+        return {'banned': '1', 'clicks': str((await (await cur.execute(f'SELECT clicks FROM Players WHERE tgid = {tgid}')).fetchone())[0])}
 
     current_clicks = (await (await cur.execute(f'SELECT clicks FROM Players WHERE tgid = {tgid}')).fetchone())[0]
     new_clicks = current_clicks + count
