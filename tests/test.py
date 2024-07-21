@@ -185,7 +185,7 @@ class TestServer(unittest.TestCase):
         cur.execute('DELETE FROM Players WHERE tgid = 1')
         cur.execute('COMMIT')
 
-    def test_set_query_id(self):
+    def test_set_awaiting_query_id(self):
         # staging
         con = sqlite3.connect('../database.db')
         cur = con.cursor()
@@ -200,6 +200,9 @@ class TestServer(unittest.TestCase):
         try:
             response = requests.get(f'http://127.0.0.1:5005/botapi/set_await_query_id/1/{key}').json()['code']
             self.assertEqual(response, '0')
+
+            result = cur.execute('SELECT awaiting_query FROM Players WHERE tgid = 1').fetchone()[0]
+            self.assertEqual(result, 1)
         except requests.exceptions.JSONDecodeError:
             self.fail('Uncaught serverside exception')
 
@@ -211,9 +214,39 @@ class TestServer(unittest.TestCase):
         try:
             response = requests.get(f'http://127.0.0.1:5005/botapi/set_await_query_id/1/666').json()['code']
             self.assertEqual(response, '2')
+            result = cur.execute('SELECT awaiting_query FROM Players WHERE tgid = 1').fetchone()[0]
+            self.assertEqual(result, 0)
         except requests.exceptions.JSONDecodeError:
             self.fail('Uncaught serverside exception')
 
         # clean up
         cur.execute('DELETE FROM Players WHERE tgid = 1')
         cur.execute('COMMIT')
+
+    def test_set_query_id(self):
+        # staging
+        con = sqlite3.connect('../database.db')
+        cur = con.cursor()
+        cur.execute('DELETE FROM Players WHERE tgid = 1')
+        cur.execute('INSERT INTO Players (tgid, banned, awaiting_query, query_id) VALUES (1, "0", 1, "stale")')
+        cur.execute('COMMIT')
+
+        try:
+            requests.get(f'http://127.0.0.1:5005/put/query_id/1/dev').json()
+
+            result = cur.execute('SELECT query_id FROM Players WHERE tgid = 1').fetchone()[0]
+            self.assertEqual(result, "dev")
+        except requests.exceptions.JSONDecodeError:
+            self.fail('Uncaught serverside exception')
+
+        cur.execute('DELETE FROM Players WHERE tgid = 1')
+        cur.execute('INSERT INTO Players (tgid, banned, awaiting_query, query_id) VALUES (1, "0", 0, "stale")')
+        cur.execute('COMMIT')
+
+        try:
+            response = requests.get(f'http://127.0.0.1:5005/put/query_id/1/dev').json()
+
+            result = cur.execute('SELECT query_id FROM Players WHERE tgid = 1').fetchone()[0]
+            self.assertEqual(result, "stale")
+        except requests.exceptions.JSONDecodeError:
+            self.fail('Uncaught serverside exception')
