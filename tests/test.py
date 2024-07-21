@@ -78,3 +78,29 @@ class TestServer(unittest.TestCase):
             self.fail('server error in start_time')
 
         self.assertEqual(res, req, 'server time different than db time')
+
+    def test_get_click(self):
+        # staging
+        con = sqlite3.connect('../database.db')
+        cur = con.cursor()
+        cur.execute('DELETE FROM Players WHERE tgid = 1')
+        cur.execute('COMMIT')
+
+        try:
+            req = requests.get('http://127.0.0.1:5005/request/clickcount/1').json()['clicks']
+            self.assertEqual(req, '-1')
+        except Exception:
+            self.fail('Server Error')
+
+        cur.execute('INSERT INTO Players (tgid, clicks) VALUES (1, 5)')
+        cur.execute('COMMIT')
+
+        try:
+            req = requests.get('http://127.0.0.1:5005/request/clickcount/1').json()['clicks']
+            self.assertEqual(req, '5')
+        except Exception:
+            self.fail('Server Error')
+
+        # clean up
+        cur.execute('DELETE FROM Players WHERE tgid = 1')
+        cur.execute('COMMIT')

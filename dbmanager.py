@@ -65,7 +65,7 @@ async def return_click(playerid=0):
     res = await (await cur.execute(f'SELECT clicks FROM Players WHERE tgid = {playerid}')).fetchone()
 
     if res is None:
-        res = '0'
+        res = '-1'
     else:
         res = str(res[0])
 
