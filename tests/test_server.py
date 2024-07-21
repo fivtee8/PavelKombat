@@ -118,7 +118,7 @@ class TestServer(unittest.TestCase):
         for name in ["hello", 'привет', '☃☃☃☃']:
             data = {'usr': 'usr', 'name': name,
                     'last': 'last'}
-            data = json.dumps(data)`
+            data = json.dumps(data)
             headers = {'Content-Type': 'application/json'}
 
             try:
