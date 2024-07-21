@@ -204,7 +204,7 @@ async def update_clicks(tgid=0, query_id='', count=''):
 
     # Check if query_id matches
 
-    good_query = await (await (await cur.execute(f'SELECT query_id FROM Players WHERE tgid = {tgid}')).fetchone())[0]
+    good_query = (await (await cur.execute(f'SELECT query_id FROM Players WHERE tgid = {tgid}')).fetchone())[0]
 
     if good_query != query_id:
         banned = True
