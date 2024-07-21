@@ -7,6 +7,13 @@ import dotenv
 
 
 class TestServer(unittest.TestCase):
+    def setUp(self):
+        con = sqlite3.connect('database.db')
+        cur = con.cursor()
+        cur.execute('DELETE FROM Players WHERE tgid = 1')
+        cur.execute('COMMIT')
+        con.close()
+
     def test_hello(self):
         req = requests.get('http://127.0.0.1:5005/').json()
         message = req['message']
@@ -164,8 +171,9 @@ class TestServer(unittest.TestCase):
 
         try:
             response = requests.get('http://127.0.0.1:5005/put/clickcount/1/wrongquery/11').json()
-            self.assertEqual(response['banned'], '1')
+            self.assertEqual(response['banned'], '0')
             self.assertEqual(response['clicks'], '100')
+            self.assertEqual(response['stale'], '1')
         except requests.exceptions.JSONDecodeError:
             self.fail('Server error')
 
