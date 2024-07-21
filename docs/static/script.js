@@ -60,10 +60,18 @@ function sendClicks() {
     loadJSON('https://fond-pangolin-lately.ngrok-free.app/put/clickcount/' + tgId + '/' + queryId + '/' + difference, processClickResponse);
 }
 
+function doStale() {
+    window.location.replace('stale.html')
+}
+
 function processClickResponse (data) {
     if (data.banned === '1') {
         console.log('Banned user');
         doBanned();
+    }
+
+    else if (data.stale === '1') {
+        doStale();
     }
 
     else {

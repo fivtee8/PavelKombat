@@ -180,7 +180,7 @@ async def update_clicks(tgid=0, query_id='', count=''):
     res = await (await cur.execute(f'SELECT banned FROM Players WHERE tgid = {tgid}')).fetchone()
 
     if res is None:
-        return {'banned': 0, 'clicks': '0'}
+        return {'stale': '0', 'banned': 0, 'clicks': '0'}
     else:
         res = res[0]
 
@@ -207,19 +207,20 @@ async def update_clicks(tgid=0, query_id='', count=''):
         good_query = (await (await cur.execute(f'SELECT query_id FROM Players WHERE tgid = {tgid}')).fetchone())[0]
 
         if good_query != query_id:
-            banned = True
+            return {'stale': '1', 'banned': '0', 'clicks': str(
+                (await (await cur.execute(f'SELECT clicks FROM Players WHERE tgid = {tgid}')).fetchone())[0])}
 
     if banned:
         await cur.execute(f'UPDATE Players SET banned = "1" WHERE tgid = {tgid}')
         await cur.execute('COMMIT')
-        return {'banned': '1', 'clicks': str((await (await cur.execute(f'SELECT clicks FROM Players WHERE tgid = {tgid}')).fetchone())[0])}
+        return {'stale': '0', 'banned': '1', 'clicks': str((await (await cur.execute(f'SELECT clicks FROM Players WHERE tgid = {tgid}')).fetchone())[0])}
 
     current_clicks = (await (await cur.execute(f'SELECT clicks FROM Players WHERE tgid = {tgid}')).fetchone())[0]
     new_clicks = current_clicks + count
     await cur.execute(f'UPDATE Players SET clicks = {new_clicks} WHERE tgid = {tgid}')
     await cur.execute('COMMIT')
 
-    return {'banned': '0', 'clicks': str(new_clicks)}
+    return {'stale': '0', 'banned': '0', 'clicks': str(new_clicks)}
 
 
 if __name__ == '__main__':
