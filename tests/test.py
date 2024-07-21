@@ -1,7 +1,9 @@
 import json
+import os
 import unittest
 import requests
 import sqlite3
+import dotenv
 
 
 class TestServer(unittest.TestCase):
@@ -178,6 +180,39 @@ class TestServer(unittest.TestCase):
             self.assertEqual(response['clicks'], '100')
         except requests.exceptions.JSONDecodeError:
             self.fail('Server error')
+
+        # clean up
+        cur.execute('DELETE FROM Players WHERE tgid = 1')
+        cur.execute('COMMIT')
+
+    def test_set_query_id(self):
+        # staging
+        con = sqlite3.connect('../database.db')
+        cur = con.cursor()
+        cur.execute('DELETE FROM Players WHERE tgid = 1')
+        cur.execute('INSERT INTO Players (tgid, banned, awaiting_query) VALUES (1, "0", 0)')
+        cur.execute('COMMIT')
+
+        dotenv.load_dotenv(dotenv_path='../.env')
+        key = os.environ.get('botkey')
+
+        # test valid path
+        try:
+            response = requests.get(f'http://127.0.0.1:5005/botapi/set_await_query_id/1/{key}').json()['code']
+            self.assertEqual(response, '0')
+        except requests.exceptions.JSONDecodeError:
+            self.fail('Uncaught serverside exception')
+
+        # test wrong botkey
+        cur.execute('DELETE FROM Players WHERE tgid = 1')
+        cur.execute('INSERT INTO Players (tgid, banned, awaiting_query) VALUES (1, "0", 0)')
+        cur.execute('COMMIT')
+
+        try:
+            response = requests.get(f'http://127.0.0.1:5005/botapi/set_await_query_id/1/666').json()['code']
+            self.assertEqual(response, '2')
+        except requests.exceptions.JSONDecodeError:
+            self.fail('Uncaught serverside exception')
 
         # clean up
         cur.execute('DELETE FROM Players WHERE tgid = 1')
