@@ -15,7 +15,7 @@ class TestServer(unittest.TestCase):
 
     def test_table_exists(self):
         # staging
-        con = sqlite3.connect('../database.db')
+        con = sqlite3.connect('database.db')
         cur = con.cursor()
 
         try:
@@ -25,7 +25,7 @@ class TestServer(unittest.TestCase):
 
     def test_check_banned(self):
         # staging
-        con = sqlite3.connect('../database.db')
+        con = sqlite3.connect('database.db')
         cur = con.cursor()
 
         cur.execute('INSERT INTO Players (tgid, banned) VALUES (1, "0")')
@@ -57,7 +57,7 @@ class TestServer(unittest.TestCase):
 
     def test_start_time(self):
         # staging
-        con = sqlite3.connect('../database.db')
+        con = sqlite3.connect('database.db')
         cur = con.cursor()
 
         # test Params exist
@@ -84,7 +84,7 @@ class TestServer(unittest.TestCase):
 
     def test_get_click(self):
         # staging
-        con = sqlite3.connect('../database.db')
+        con = sqlite3.connect('database.db')
         cur = con.cursor()
         cur.execute('DELETE FROM Players WHERE tgid = 1')
         cur.execute('COMMIT')
@@ -110,7 +110,7 @@ class TestServer(unittest.TestCase):
 
     def test_register(self):
         # staging
-        con = sqlite3.connect('../database.db')
+        con = sqlite3.connect('database.db')
         cur = con.cursor()
         cur.execute('DELETE FROM Players WHERE tgid = 1')
         cur.execute('COMMIT')
@@ -118,7 +118,7 @@ class TestServer(unittest.TestCase):
         for name in ["hello", 'привет', '☃☃☃☃']:
             data = {'usr': 'usr', 'name': name,
                     'last': 'last'}
-            data = json.dumps(data)
+            data = json.dumps(data)`
             headers = {'Content-Type': 'application/json'}
 
             try:
@@ -144,7 +144,7 @@ class TestServer(unittest.TestCase):
 
     def test_update_clicks(self):
         # staging
-        con = sqlite3.connect('../database.db')
+        con = sqlite3.connect('database.db')
         cur = con.cursor()
         cur.execute('DELETE FROM Players WHERE tgid = 1')
         cur.execute('INSERT INTO Players (tgid, clicks, banned, query_id) VALUES (1, 100, "0", "dev")')
@@ -198,13 +198,13 @@ class TestServer(unittest.TestCase):
 
     def test_set_awaiting_query_id(self):
         # staging
-        con = sqlite3.connect('../database.db')
+        con = sqlite3.connect('database.db')
         cur = con.cursor()
         cur.execute('DELETE FROM Players WHERE tgid = 1')
         cur.execute('INSERT INTO Players (tgid, banned, awaiting_query) VALUES (1, "0", 0)')
         cur.execute('COMMIT')
 
-        dotenv.load_dotenv(dotenv_path='../.env')
+        dotenv.load_dotenv(dotenv_path='.env')
         key = os.environ.get('botkey')
 
         # test valid path
@@ -236,7 +236,7 @@ class TestServer(unittest.TestCase):
 
     def test_set_query_id(self):
         # staging
-        con = sqlite3.connect('../database.db')
+        con = sqlite3.connect('database.db')
         cur = con.cursor()
         cur.execute('DELETE FROM Players WHERE tgid = 1')
         cur.execute('INSERT INTO Players (tgid, banned, awaiting_query, query_id) VALUES (1, "0", 1, "stale")')
