@@ -261,3 +261,6 @@ class TestServer(unittest.TestCase):
             self.assertEqual(result, "stale")
         except requests.exceptions.JSONDecodeError:
             self.fail('Uncaught serverside exception')
+
+if __name__ == '__main__':
+    unittest.main()
