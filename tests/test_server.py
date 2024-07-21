@@ -262,5 +262,8 @@ class TestServer(unittest.TestCase):
         except requests.exceptions.JSONDecodeError:
             self.fail('Uncaught serverside exception')
 
+        cur.execute('DELETE FROM Players WHERE tgid = 1')
+        cur.execute('COMMIT')
+
 if __name__ == '__main__':
     unittest.main()
