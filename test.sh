@@ -1,7 +1,7 @@
 ./stopserver.sh
 fuser database.db 2>/dev/null | xargs kill -9 > /dev/null 2> /dev/null
-./startserver.sh
-python3 tests/clear_db.py
+./startserver.sh > /dev/null
+python3 tests/clear_db.py > /dev/null
 while ! nc -z localhost 4040; do
   sleep .2 # wait Ngrok to be available
 done
