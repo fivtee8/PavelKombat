@@ -13,6 +13,11 @@ class TestServer(unittest.TestCase):
 
         self.assertEqual(message, 'You have reached the server! Everything is functional.', 'Hello message failed. Server down?')
 
+    def test_dotenv(self):
+        dotenv.load_dotenv()
+        self.assertNotEqual(os.environ.get('botkey', None))
+        self.assertNotEqual(os.environ.get('BOT_TOKEN', None))
+
     def test_table_exists(self):
         # staging
         con = sqlite3.connect('database.db')
