@@ -15,8 +15,8 @@ class TestServer(unittest.TestCase):
 
     def test_dotenv(self):
         dotenv.load_dotenv()
-        self.assertNotEqual(os.environ.get('botkey', None))
-        self.assertNotEqual(os.environ.get('BOT_TOKEN', None))
+        self.assertNotEqual(os.environ.get('botkey'), None)
+        self.assertNotEqual(os.environ.get('BOT_TOKEN'), None)
 
     def test_table_exists(self):
         # staging
