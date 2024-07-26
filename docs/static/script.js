@@ -15,15 +15,35 @@ function doUpdate() {
 }
 
 function setupApp() {
-    tg.expand()
-
-    console.log("User Id: " + tg.initDataUnsafe.user.id);
     tgId = tg.initDataUnsafe.user.id;
     queryId = tg.initDataUnsafe.query_id;
+    console.log("User Id: " + tgId);
+
+    tg.expand();
     fetchClickCount();
     sendQueryId();
 
-    var updater = setInterval(doUpdate, 5000);
+    let isBanned = checkBanned();
+
+    if (isBanned) doBanned;
+    else {
+        console.log('User is not banned');
+        var updater = setInterval(doUpdate, 5000);
+    }
+}
+
+function checkBanned () {
+    let ret = loadJSON('https://fond-pangolin-lately.ngrok-free.app/get' + tgId + '/' + queryId, processBannedResponse);
+    return ret;
+}
+
+function processBannedResponse (data) {
+    if (data.banned === '1') return true;
+    else return false;
+}
+
+function doBanned () {
+    window.location.replace('banned.html');
 }
 
 function sendQueryId () {
@@ -40,15 +60,23 @@ function sendClicks() {
     loadJSON('https://fond-pangolin-lately.ngrok-free.app/put/clickcount/' + tgId + '/' + queryId + '/' + difference, processClickResponse);
 }
 
+function doStale() {
+    window.location.replace('stale.html')
+}
+
 function processClickResponse (data) {
     if (data.banned === '1') {
-        // put banned code here
         console.log('Banned user');
+        doBanned();
+    }
+
+    else if (data.stale === '1') {
+        doStale();
     }
 
     else {
         oldCount = data.clicks;
-        console.log('Updated clicks')
+        console.log('Updated clicks');
     }
 }
 
@@ -112,7 +140,7 @@ function loadJSON(path, success) {
   xhr.onreadystatechange = function () {
     if (xhr.readyState === 4) {
       if (xhr.status === 200) {
-        success(JSON.parse(xhr.responseText));
+        return success(JSON.parse(xhr.responseText));
       }
     }
   };
@@ -121,7 +149,7 @@ function loadJSON(path, success) {
   xhr.send();
 }
 
-function clickthis() {
+function clickThis() {
     count++;
     console.log("Clicked!");
     document.querySelector('.counter').textContent = count;
