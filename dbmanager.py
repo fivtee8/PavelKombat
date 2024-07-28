@@ -219,7 +219,7 @@ async def update_clicks(tgid=0, query_id='', count=''):
         ms_time = int(time.time() * 1000)
         now = int(time.time())
 
-        if now - last_time < 5:
+        if now - last_time < 4:
             banned = True
 
     if banned:
