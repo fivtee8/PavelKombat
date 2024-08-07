@@ -1,4 +1,6 @@
 import os
+import time
+
 import aiosqlite
 import uvicorn
 import json
@@ -112,9 +114,9 @@ async def register(tgid=0):
     usr = params['usr']
 
     try:
-        values_str = str(tgid) + ', "' + '", "'.join([usr, name, last, "0"]) + '"'
+        values_str = str(tgid) + ', 0, "' + '", "'.join([usr, name, last, "0"]) + '"'
         # print("Executing: " + f'INSERT INTO Players (tgid, username, firstname, lastname) VALUES ({values_str})')
-        await cur.execute(f'INSERT INTO Players (tgid, username, firstname, lastname, banned) VALUES ({values_str})')
+        await cur.execute(f'INSERT INTO Players (tgid, time, username, firstname, lastname, banned) VALUES ({values_str})')
         await cur.execute(f'UPDATE PLayers SET clicks = 0 WHERE tgid = {tgid}')
         await cur.execute('COMMIT')
 
@@ -123,8 +125,8 @@ async def register(tgid=0):
     except aiosqlite.OperationalError:
         output = {'message': 'operationalError!'}
 
-    except Exception:
-        output = {'message': 'Other exception...'}
+    except Exception as e:
+        output = {f'message': f'Uncaught exception of type {e}'}
 
     resp = flask.Response(json.dumps(output))
     resp.headers['Content-Type'] = 'application/html'
@@ -178,11 +180,14 @@ async def update_clicks(tgid=0, query_id='', count=''):
     banned = False
 
     res = await (await cur.execute(f'SELECT banned FROM Players WHERE tgid = {tgid}')).fetchone()
+    last_time = await (await cur.execute(f'SELECT time FROM Players WHERE tgid = {tgid}')).fetchone()
+    print(last_time)
 
     if res is None:
         return {'stale': '0', 'banned': 0, 'clicks': '0'}
     else:
         res = res[0]
+        last_time = int(last_time[0])
 
     banned = bool(int(res))
 
@@ -210,6 +215,13 @@ async def update_clicks(tgid=0, query_id='', count=''):
             return {'stale': '1', 'banned': '0', 'clicks': str(
                 (await (await cur.execute(f'SELECT clicks FROM Players WHERE tgid = {tgid}')).fetchone())[0])}
 
+        # check time
+        ms_time = int(time.time() * 1000)
+        now = int(time.time())
+
+        if now - last_time < 4:
+            banned = True
+
     if banned:
         await cur.execute(f'UPDATE Players SET banned = "1" WHERE tgid = {tgid}')
         await cur.execute('COMMIT')
@@ -217,10 +229,10 @@ async def update_clicks(tgid=0, query_id='', count=''):
 
     current_clicks = (await (await cur.execute(f'SELECT clicks FROM Players WHERE tgid = {tgid}')).fetchone())[0]
     new_clicks = current_clicks + count
-    await cur.execute(f'UPDATE Players SET clicks = {new_clicks} WHERE tgid = {tgid}')
+    await cur.execute(f'UPDATE Players SET clicks = {new_clicks}, time = {now} WHERE tgid = {tgid}')
     await cur.execute('COMMIT')
 
-    return {'stale': '0', 'banned': '0', 'clicks': str(new_clicks)}
+    return {'stale': '0', 'time': ms_time, 'banned': '0', 'clicks': str(new_clicks)}
 
 
 if __name__ == '__main__':

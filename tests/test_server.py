@@ -4,6 +4,14 @@ import unittest
 import requests
 import sqlite3
 import dotenv
+import time
+import logging
+import sys
+
+logger = logging.getLogger('TestServer')
+logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+logging.getLogger('urllib3').setLevel('WARNING')
+logger.info('Logging started')
 
 
 class TestServer(unittest.TestCase):
@@ -126,8 +134,8 @@ class TestServer(unittest.TestCase):
             data = json.dumps(data)
             headers = {'Content-Type': 'application/json'}
 
+            raw_message = requests.get('http://127.0.0.1:5005/botapi/register_user/1', data=data, headers=headers)
             try:
-                raw_message = requests.get('http://127.0.0.1:5005/botapi/register_user/1', data=data, headers=headers)
                 message = raw_message.json()['message']
             except requests.exceptions.JSONDecodeError:
                 self.fail('Request failed. Text: ' + raw_message.text)
@@ -135,12 +143,13 @@ class TestServer(unittest.TestCase):
             if message != 'success':
                 self.fail(message)
 
-            username, firstname, lastname, clicks, banned = cur.execute('SELECT username, firstname, lastname, clicks, banned FROM Players WHERE tgid = 1').fetchone()
+            username, firstname, lastname, clicks, banned, time_up = cur.execute('SELECT username, firstname, lastname, clicks, banned, time FROM Players WHERE tgid = 1').fetchone()
 
             self.assertEqual(username, 'usr', 'Wrong username')
             self.assertEqual(lastname, 'last', 'lastname wrong')
             self.assertEqual(clicks, 0)
             self.assertEqual(banned, '0')
+            self.assertEqual(time_up, 0)
             self.assertEqual(firstname, name, f'Error registering name {name}')
 
             # clean up
@@ -152,7 +161,7 @@ class TestServer(unittest.TestCase):
         con = sqlite3.connect('database.db')
         cur = con.cursor()
         cur.execute('DELETE FROM Players WHERE tgid = 1')
-        cur.execute('INSERT INTO Players (tgid, clicks, banned, query_id) VALUES (1, 100, "0", "dev")')
+        cur.execute('INSERT INTO Players (tgid, clicks, banned, query_id, time) VALUES (1, 100, "0", "dev", 0)')
         cur.execute('COMMIT')
 
         # test good path
@@ -164,7 +173,7 @@ class TestServer(unittest.TestCase):
             self.fail('Server error')
 
         cur.execute('DELETE FROM Players WHERE tgid = 1')
-        cur.execute('INSERT INTO Players (tgid, clicks, banned, query_id) VALUES (1, 100, "0", "dev")')
+        cur.execute('INSERT INTO Players (tgid, clicks, banned, query_id, time) VALUES (1, 100, "0", "dev", 0)')
         cur.execute('COMMIT')
 
         try:
@@ -177,7 +186,7 @@ class TestServer(unittest.TestCase):
 
         for click_count in [-1, 100, 'yabadaba']:
             cur.execute('DELETE FROM Players WHERE tgid = 1')
-            cur.execute('INSERT INTO Players (tgid, clicks, banned, query_id) VALUES (1, 100, "0", "dev")')
+            cur.execute('INSERT INTO Players (tgid, clicks, banned, query_id, time) VALUES (1, 100, "0", "dev", 0)')
             cur.execute('COMMIT')
 
             try:
@@ -188,13 +197,64 @@ class TestServer(unittest.TestCase):
                 self.fail('Server error')
 
         cur.execute('DELETE FROM Players WHERE tgid = 1')
-        cur.execute('INSERT INTO Players (tgid, clicks, banned, query_id) VALUES (1, 100, "1", "dev")')
+        cur.execute('INSERT INTO Players (tgid, clicks, banned, query_id, time) VALUES (1, 100, "1", "dev", 0)')
         cur.execute('COMMIT')
 
         try:
-            response = requests.get(f'http://127.0.0.1:5005/put/clickcount/1/dev/{click_count}').json()
+            response = requests.get(f'http://127.0.0.1:5005/put/clickcount/1/dev/10').json()
             self.assertEqual(response['banned'], '1')
             self.assertEqual(response['clicks'], '100')
+        except requests.exceptions.JSONDecodeError:
+            self.fail('Server error')
+
+        cur.execute('DELETE FROM Players WHERE tgid = 1')
+        cur.execute('INSERT INTO Players (tgid, clicks, banned, query_id, time) VALUES (1, 100, "0", "dev", 0)')
+        cur.execute('COMMIT')
+
+        try:
+            response = requests.get(f'http://127.0.0.1:5005/put/clickcount/1/dev/10').json()
+            self.assertEqual(response['banned'], '0')
+            self.assertEqual(response['clicks'], '110')
+            response = requests.get(f'http://127.0.0.1:5005/put/clickcount/1/dev/10').json()
+            self.assertEqual(response['banned'], '1')
+            self.assertEqual(response['clicks'], '110')
+        except requests.exceptions.JSONDecodeError:
+            self.fail('Server error')
+
+        cur.execute('DELETE FROM Players WHERE tgid = 1')
+        cur.execute('INSERT INTO Players (tgid, clicks, banned, query_id, time) VALUES (1, 100, "0", "dev", 0)')
+        cur.execute('COMMIT')
+
+        try:
+            response = requests.get(f'http://127.0.0.1:5005/put/clickcount/1/dev/10').json()
+            self.assertEqual(response['banned'], '0')
+            self.assertEqual(response['clicks'], '110')
+
+            try:
+                server_time = response['time']
+            except KeyError:
+                self.fail('Server does not return time parameter.')
+
+            now = int(time.time() * 1000)
+            ping = now - server_time
+
+            logger.info(f'Server one-way ping: {ping}ms')
+
+        except requests.exceptions.JSONDecodeError:
+            self.fail('Server error')
+
+        cur.execute('DELETE FROM Players WHERE tgid = 1')
+        cur.execute('INSERT INTO Players (tgid, clicks, banned, query_id, time) VALUES (1, 100, "0", "dev", 0)')
+        cur.execute('COMMIT')
+
+        try:
+            response = requests.get(f'http://127.0.0.1:5005/put/clickcount/1/dev/10').json()
+            self.assertEqual(response['banned'], '0')
+            self.assertEqual(response['clicks'], '110')
+            time.sleep(5)
+            response = requests.get(f'http://127.0.0.1:5005/put/clickcount/1/dev/10').json()
+            self.assertEqual(response['banned'], '0')
+            self.assertEqual(response['clicks'], '120')
         except requests.exceptions.JSONDecodeError:
             self.fail('Server error')
 
