@@ -24,7 +24,7 @@ function populateLeaderboard(data) {
     const tbody = document.querySelector("#leaderboard tbody");
     tbody.innerHTML = '';
 
-    data.boards.forEach(([name, click_count]) => {
+    data.board.forEach(([name, click_count]) => {
         const row = document.createElement('tr');
 
         const nameCell = document.createElement('td');
