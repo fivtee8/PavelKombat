@@ -3,7 +3,7 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 function fetchLeaderboard() {
-    fetch('http://localhost:5005/leaderboards/')
+    fetch('https://fond-pangolin-lately.ngrok-free.app/leaderboard/')
         .then(response => response.json())
         .then(data => {
             populateLeaderboard(data);
