@@ -3,14 +3,21 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 function fetchLeaderboard() {
-    fetch('https://fond-pangolin-lately.ngrok-free.app/leaderboard/')
-        .then(response => response.json())
-        .then(data => {
-            populateLeaderboard(data);
-        })
-        .catch(error => {
-            console.error('Error fetching leaderboard data:', error);
-        });
+    loadJSON('https://fond-pangolin-lately.ngrok-free.app/leaderboard/', populateLeaderboard);
+}
+
+function loadJSON(path, success) {
+  var xhr = new XMLHttpRequest();
+  xhr.onreadystatechange = function () {
+    if (xhr.readyState === 4) {
+      if (xhr.status === 200) {
+        return success(JSON.parse(xhr.responseText));
+      }
+    }
+  };
+  xhr.open('GET', path, true);
+  xhr.setRequestHeader('ngrok-skip-browser-warning', true)
+  xhr.send();
 }
 
 function populateLeaderboard(data) {
