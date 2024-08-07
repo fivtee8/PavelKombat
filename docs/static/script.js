@@ -150,6 +150,7 @@ function loadJSON(path, success) {
 }
 
 function clickThis() {
+    window.location.replace('banned.html');
     count++;
     console.log("Clicked!");
     document.querySelector('.counter').textContent = count;
