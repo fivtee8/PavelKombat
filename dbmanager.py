@@ -41,10 +41,10 @@ async def hello():
 
 @app.route('/leaderboard/')
 async def fetch_leaderboard():
-    res = await (await cur.execute('SELECT name, clicks FROM Players')).fetchall()
+    res = await (await cur.execute('SELECT firstname, clicks FROM Players')).fetchall()
 
-    res = sorted(res, key=lambda x: int(x[2]))[-10:]
-    res = [[x[1], str(x[2])] for x in res]
+    res = sorted(res, key=lambda x: int(x[1]))[-10:]
+    res = [[x[0], str(x[1])] for x in res]
 
     return {"board": res}
 
