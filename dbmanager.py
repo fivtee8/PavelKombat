@@ -62,6 +62,16 @@ async def start_time():
     return res
 
 
+@app.route('/leaderboard/')
+async def fetch_leaderboard():
+    res = await (await cur.execute('SELECT name, clicks FROM Players')).fetchall()
+
+    res = sorted(res, key=lambda x: int(x[2]))[-10:]
+    res = [[x[1], str(x[2])] for x in res]
+
+    return {"board": res}
+
+
 @app.route('/request/clickcount/<playerid>')
 async def return_click(playerid=0):
     res = await (await cur.execute(f'SELECT clicks FROM Players WHERE tgid = {playerid}')).fetchone()
