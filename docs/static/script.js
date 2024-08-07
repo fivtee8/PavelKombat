@@ -5,6 +5,7 @@ var runHours = 230;
 var tg = window.Telegram.WebApp;
 var tgId;
 var queryId;
+var updater;
 
 fetchStartDate();
 setupApp();
