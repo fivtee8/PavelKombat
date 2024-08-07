@@ -46,7 +46,7 @@ async def fetch_leaderboard():
     res = sorted(res, key=lambda x: int(x[1]))[-10:]
     res = [[x[0], str(x[1])] for x in res]
 
-    return {"board": res}
+    return {"board": res[::-1]}
 
 
 @app.route('/request/banned/<tgid>')
