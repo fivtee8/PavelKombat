@@ -6,6 +6,7 @@ var tg = window.Telegram.WebApp;
 var tgId;
 var queryId;
 var updater;
+var elapsedHours;
 
 fetchStartDate();
 setupApp();
@@ -150,6 +151,18 @@ function loadJSON(path, success) {
   xhr.send();
 }
 
+function updateProgressBar(elapsedHours) {
+    const totalHours = 230;
+    const progressBar = document.getElementById('progressBar');
+
+    // Calculate the percentage of progress
+    const percentage = (elapsedHours / totalHours) * 100;
+
+    // Update the width of the progress bar
+    progressBar.style.width = percentage + '%';
+    progressBar.textContent = Math.round(percentage) + '%';
+}
+
 function loadLeaderboard() {
     window.location.replace('leaderboard.html');
 }
@@ -164,6 +177,8 @@ function updateClock() {
     var now = new Date().getTime();
     var difference = now - startDate;
     var hourDiff = Math.round(difference / (60 * 60 * 1000))
+
+    elapsedHours = hourDiff;
 
     console.log("Now: " + now + " Diff: " + difference + " Hour dif: " + hourDiff);
 

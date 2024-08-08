@@ -19,10 +19,30 @@ body{
 }
 
 .leader {
-    height: 150px;
+    height: 30px;
     width: 80%;
     display: block;
     margin: 0 auto;
+}
+
+.progress-container {
+    width: 80%;
+    max-width: 600px;
+    background-color: #e0e0e0;
+    border-radius: 25px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.progress-bar {
+    height: 30px;
+    width: 0;
+    background-color: #4caf50;
+    text-align: center;
+    line-height: 30px;
+    color: white;
+    font-weight: bold;
+    border-radius: 25px;
 }
 
 .pavelimage:hover {
