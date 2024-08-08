@@ -4,7 +4,7 @@ body{
     height: 100vh;
     margin: 0;
     padding: 0;
-    background-color: #2C2C2C;
+    background-color: #0C0C0C;
     color: white;
     user-select: none;
 }
@@ -28,21 +28,21 @@ body{
 .progress-container {
     width: 80%;
     max-width: 600px;
-    background-color: #e0e0e0;
-    border-radius: 25px;
+    background-color: #2C2C2C;
+    border-radius: 5px;
     overflow: hidden;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .progress-bar {
-    height: 30px;
+    height: 10px;
     width: 0;
-    background-color: #4caf50;
+    background-color: #FF4444;
     text-align: center;
-    line-height: 30px;
+    line-height: 10px;
     color: white;
-    font-weight: bold;
-    border-radius: 25px;
+    font-weight: normal;
+    border-radius: 5px;
 }
 
 .pavelimage:hover {

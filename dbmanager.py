@@ -108,9 +108,14 @@ async def check_registered(tgid=0):
     res = await (await cur.execute(f'SELECT clicks FROM Players WHERE tgid = {tgid}')).fetchone()
 
     if res is None:
-        return {'registered': '0'}
+        response = {'registered': '0'}
     else:
-        return {'registered': '1'}
+        response = {'registered': '1'}
+
+    resp = flask.Response(json.dumps(response))
+    resp.headers['Content-Type'] = 'application/json'
+
+    return resp
 
 
 @app.route('/botapi/register_user/<tgid>', methods=['GET'])
