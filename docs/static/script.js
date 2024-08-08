@@ -179,6 +179,7 @@ function updateClock() {
     var hourDiff = Math.round(difference / (60 * 60 * 1000))
 
     elapsedHours = hourDiff;
+    updateProgressBar(elapsedHours);
 
     console.log("Now: " + now + " Diff: " + difference + " Hour dif: " + hourDiff);
 
