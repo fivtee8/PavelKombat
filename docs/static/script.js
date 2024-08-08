@@ -150,8 +150,11 @@ function loadJSON(path, success) {
   xhr.send();
 }
 
-function clickThis() {
+function loadLeaderboard() {
     window.location.replace('leaderboard.html');
+}
+
+function clickThis() {
     count++;
     console.log("Clicked!");
     document.querySelector('.counter').textContent = count;
