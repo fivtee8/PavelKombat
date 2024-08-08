@@ -2,16 +2,18 @@ body{
     display: grid;
     place-items: center;
     height: 100vh;
-    margin: 0;
-    padding: 0;
+    padding: 10;
     background-color: #0C0C0C;
     color: white;
     user-select: none;
+    text-align: center;
 }
 
 .counter {
     font-size: 2em;
     margin-bottom: 20;
+    text-align: center;
+    color: orange;
 }
 
 .image-container {
@@ -23,6 +25,12 @@ body{
     width: 80%;
     display: block;
     margin: 0 auto;
+    margin-bottom: 40;
+    border-radius: 7px;
+    color: white;
+    background-color: #FF9090;
+    border-color: #0C0C0C;
+    border: black;
 }
 
 .progress-container {
@@ -32,6 +40,7 @@ body{
     border-radius: 5px;
     overflow: hidden;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    margin: 0 auto;
 }
 
 .progress-bar {
