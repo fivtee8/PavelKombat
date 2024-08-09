@@ -2,9 +2,13 @@ import json
 import os
 import time
 import asyncio
+
+import aiogram.dispatcher.event.bases
 import aiohttp
-from aiogram import Bot, Dispatcher, types, F
+from typing import Callable, Dict, Any
+from aiogram import Bot, Dispatcher, types
 from aiogram.filters import CommandStart
+from aiogram import BaseMiddleware
 
 if os.path.exists(".env"):
     from dotenv import load_dotenv
@@ -15,6 +19,32 @@ if os.path.exists(".env"):
 BOT_TOKEN = os.getenv('BOT_TOKEN')
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
+
+
+async def check_regged(message: types.message):
+    channel_id = os.getenv('channel_id')
+
+    print(type((await bot.get_chat_member(channel_id, message.from_user.id))))
+
+    try:
+        if type((await bot.get_chat_member(channel_id, message.from_user.id))) in [aiogram.types.chat_member_administrator.ChatMemberAdministrator, aiogram.types.chat_member_owner.ChatMemberOwner, aiogram.types.chat_member_member.ChatMemberMember]:
+            return True
+        else:
+            return False
+    except Exception as e:
+        print(e)
+        return False
+
+
+@dp.update.outer_middleware
+async def middleware(handler, event: types.Update, data: Dict[str, Any]):
+    message = event.message or event.callback_query.message
+    if message and message.text.startswith('/'):
+        if not (await check_regged(message)):
+            await message.reply('Подпишись, падла!')
+            raise aiogram.dispatcher.event.bases.CancelHandler()
+        else:
+            return await handler(event, data)
 
 
 @dp.message(CommandStart())
@@ -51,7 +81,7 @@ async def start_handler(message: types.Message):
         await asyncio.sleep(15)
         await bot.delete_message(sent.chat.id, sent.message_id)
         await bot.delete_message(message.chat.id, message.message_id)
-        await aiohttp.request(method='GET',
+        aiohttp.request(method='GET',
                               url=f'https://fond-pangolin-lately.ngrok-free.app/botapi/unawait_query/{message.from_user.id}')
     else:
         await message.answer('Ошибка' + set_await_json['code'])
