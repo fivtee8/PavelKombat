@@ -41,7 +41,10 @@ async def middleware(handler, event: types.Update, data: Dict[str, Any]):
     message = event.message or event.callback_query.message
     if message and message.text.startswith('/'):
         if not (await check_regged(message)):
-            await message.reply('Подпишись, падла!')
+            repped = await message.reply('Подпишись, падла!\n\n@pdevkprff')
+            await asyncio.sleep(15)
+            await bot.delete_message(message.chat.id, message.message_id)
+            await bot.delete_message(repped.chat.id, repped.message_id)
             raise aiogram.dispatcher.event.bases.CancelHandler()
         else:
             return await handler(event, data)
