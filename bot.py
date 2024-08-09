@@ -1,14 +1,12 @@
 import json
 import os
-import time
 import asyncio
 
 import aiogram.dispatcher.event.bases
 import aiohttp
-from typing import Callable, Dict, Any
+from typing import Dict, Any
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import CommandStart
-from aiogram import BaseMiddleware
 
 if os.path.exists(".env"):
     from dotenv import load_dotenv
@@ -23,8 +21,6 @@ dp = Dispatcher()
 
 async def check_regged(message: types.message):
     channel_id = os.getenv('channel_id')
-
-    print(type((await bot.get_chat_member(channel_id, message.from_user.id))))
 
     try:
         if type((await bot.get_chat_member(channel_id, message.from_user.id))) in [aiogram.types.chat_member_administrator.ChatMemberAdministrator, aiogram.types.chat_member_owner.ChatMemberOwner, aiogram.types.chat_member_member.ChatMemberMember]:
@@ -42,9 +38,11 @@ async def middleware(handler, event: types.Update, data: Dict[str, Any]):
     if message and message.text.startswith('/'):
         if not (await check_regged(message)):
             repped = await message.reply('Подпишись, падла!\n\n@pdevkprff')
+
             await asyncio.sleep(15)
             await bot.delete_message(message.chat.id, message.message_id)
             await bot.delete_message(repped.chat.id, repped.message_id)
+
             raise aiogram.dispatcher.event.bases.CancelHandler()
         else:
             return await handler(event, data)
