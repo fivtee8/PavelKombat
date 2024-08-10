@@ -27,6 +27,7 @@ async def check_regged(message: types.message):
             return True
         else:
             return False
+
     except Exception as e:
         print(e)
         return False
