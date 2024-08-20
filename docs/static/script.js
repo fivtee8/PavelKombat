@@ -8,14 +8,25 @@ var queryId;
 var updater;
 var elapsedHours;
 
-fetchStartDate();
-setupApp();
-
 $(document).ready(function(){
   $("body").on("contextmenu", function(e) {
     return false;
   });
 });
+
+document.querySelectorAll('img').forEach(function(img) {
+    img.addEventListener('contextmenu', function(e) {
+        e.preventDefault(); // Prevent right-click context menu
+    });
+
+    img.addEventListener('touchstart', function(e) {
+        e.preventDefault(); // Prevent long-press actions on touch devices
+    });
+});
+
+fetchStartDate();
+setupApp();
+
 
 function doUpdate() {
     updateClock();
