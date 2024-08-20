@@ -144,7 +144,7 @@ async def register(tgid=0):
         output = {f'message': f'Uncaught exception of type {e}'}
 
     resp = flask.Response(json.dumps(output))
-    resp.headers['Content-Type'] = 'application/html'
+    resp.headers['Content-Type'] = 'application/json'
 
     return resp
 

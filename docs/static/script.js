@@ -11,13 +11,18 @@ var elapsedHours;
 fetchStartDate();
 setupApp();
 
+$(document).ready(function(){
+  $("body").on("contextmenu", function(e) {
+    return false;
+  });
+});
+
 function doUpdate() {
     updateClock();
     sendClicks();
 }
 
 function setupApp() {
-    $("body").on("contextmenu",function(e){      return false; });
     tgId = tg.initDataUnsafe.user.id;
     queryId = tg.initDataUnsafe.query_id;
     console.log("User Id: " + tgId);
