@@ -17,6 +17,7 @@ function doUpdate() {
 }
 
 function setupApp() {
+    $("body").on("contextmenu",function(e){      return false; });
     tgId = tg.initDataUnsafe.user.id;
     queryId = tg.initDataUnsafe.query_id;
     console.log("User Id: " + tgId);
