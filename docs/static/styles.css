@@ -54,6 +54,12 @@ body{
     border-radius: 5px;
 }
 
+.pavelimage {
+    width: 60%;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+}
+
 .pavelimage:hover {
     opacity: 0.9;
     cursor: pointer;
