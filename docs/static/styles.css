@@ -2,24 +2,56 @@ body{
     display: grid;
     place-items: center;
     height: 100vh;
-    margin: 0;
-    padding: 0;
-    background-color: #2C2C2C;
+    padding: 10;
+    background-color: #0C0C0C;
     color: white;
     user-select: none;
+    text-align: center;
 }
 
 .counter {
     font-size: 2em;
     margin-bottom: 20;
+    text-align: center;
+    color: yellow;
 }
 
 .image-container {
     touch-action: manipulation;
 }
 
-.pavelimage {
+.leader {
+    height: 30px;
+    width: 80%;
+    display: block;
+    margin: 0 auto;
+    margin-bottom: 40;
+    border-radius: 7px;
+    color: white;
+    background-color: #5b5b5b;
+    border-color: #0C0C0C;
+    border: black;
+}
 
+.progress-container {
+    width: 80%;
+    max-width: 600px;
+    background-color: #2C2C2C;
+    border-radius: 5px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    margin: 0 auto;
+}
+
+.progress-bar {
+    height: 10px;
+    width: 0;
+    background-color: yellow;
+    text-align: center;
+    line-height: 10px;
+    color: white;
+    font-weight: normal;
+    border-radius: 5px;
 }
 
 .pavelimage:hover {

@@ -41,6 +41,16 @@ async def hello():
     return {'message': 'You have reached the server! Everything is functional.'}
 
 
+@app.route('/leaderboard/')
+async def fetch_leaderboard():
+    res = await (await cur.execute('SELECT firstname, clicks FROM Players')).fetchall()
+
+    res = sorted(res, key=lambda x: int(x[1]))[-10:]
+    res = [[x[0], str(x[1])] for x in res]
+
+    return {"board": res[::-1]}
+
+
 @app.route('/request/banned/<tgid>')
 async def check_banned(tgid=0):
     res = await (await cur.execute(f'SELECT banned FROM Players WHERE tgid = {tgid}')).fetchone()
@@ -100,9 +110,14 @@ async def check_registered(tgid=0):
     res = await (await cur.execute(f'SELECT clicks FROM Players WHERE tgid = {tgid}')).fetchone()
 
     if res is None:
-        return {'registered': '0'}
+        response = {'registered': '0'}
     else:
-        return {'registered': '1'}
+        response = {'registered': '1'}
+
+    resp = flask.Response(json.dumps(response))
+    resp.headers['Content-Type'] = 'application/json'
+
+    return resp
 
 
 @app.route('/botapi/register_user/<tgid>', methods=['GET'])

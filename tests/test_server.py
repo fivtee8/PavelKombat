@@ -331,6 +331,30 @@ class TestServer(unittest.TestCase):
         cur.execute('DELETE FROM Players WHERE tgid = 1')
         cur.execute('COMMIT')
 
+    def test_leaderboard(self):
+        # staging
+        con = sqlite3.connect('database.db')
+        cur = con.cursor()
+        cur.execute('DELETE FROM Players WHERE tgid = 1')
+
+        for i in range(1, 11):
+            cur.execute(f'INSERT INTO Players (tgid, firstname, clicks, banned) VALUES ({i}, {i}, "{i * 1000000}", "0")')
+
+        cur.execute('COMMIT')
+
+        try:
+            response = requests.get(f'http://127.0.0.1:5005/leaderboard/').json()
+
+            good_list = [[str(x), str(x * 1000000)] for x in range(1, 11)]
+
+            self.assertEqual(good_list, response['board'])
+        except json.JSONDecodeError:
+            self.fail('Uncaught serverside exception')
+
+        for i in range(1, 11):
+            cur.execute(f'DELETE FROM Players WHERE tgid = {i}')
+        cur.execute('COMMIT')
+
 
 if __name__ == '__main__':
     unittest.main()
