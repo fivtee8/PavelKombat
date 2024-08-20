@@ -177,13 +177,11 @@ async def unawait_query(tgid=0):
 
 @app.route('/put/query_id/<tgid>/<query_id>')
 async def set_query_id(tgid=0, query_id=''):
-    print('running')
     awaiting_query = ((await (await cur.execute(f'SELECT awaiting_query FROM Players WHERE tgid = {tgid}')).fetchone())[0] == 1)
     if awaiting_query:
         await cur.execute(f'UPDATE Players SET query_id = "{query_id}" WHERE tgid = {tgid}')
         await cur.execute(f'UPDATE Players SET awaiting_query = 0 WHERE tgid = {tgid}')
         await cur.execute('COMMIT')
-        print('updated query')
     else:
         print(f'Unawaited query')
 
