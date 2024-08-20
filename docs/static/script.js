@@ -41,7 +41,7 @@ function setupApp() {
 }
 
 function checkBanned () {
-    let ret = loadJSON('https://fond-pangolin-lately.ngrok-free.app/get' + tgId + '/' + queryId, processBannedResponse);
+    let ret = loadJSON('https://fond-pangolin-lately.ngrok-free.app/get/' + tgId + '/' + queryId, processBannedResponse);
     return ret;
 }
 
