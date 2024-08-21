@@ -28,8 +28,50 @@ document.querySelectorAll('img.pavelimage').forEach(function(img) {
     });
 });
 
+document.getElementById("clickable-image").addEventListener("click", function(event) {
+    createCoin(event.clientX, event.clientY);
+});
+
+
 fetchStartDate();
 setupApp();
+
+function createCoin(x, y) {
+    const coin = document.createElement("img");
+    coin.src = "/PavelKombat/static/coin.jpeg";  // Path to your coin image
+    coin.className = "coin";
+    coin.style.left = `${x}px`;
+    coin.style.top = `${y}px`;
+
+    document.getElementById("image-container").appendChild(coin);
+
+    // Set initial velocity and random direction
+    let velocityX = (Math.random() - 0.5) * 10; // Random horizontal speed
+    let velocityY = -Math.random() * 15 - 5; // Random upward speed
+    let gravity = 0.5; // Gravity effect
+
+    function animateCoin() {
+        // Update position based on velocity
+        x += velocityX;
+        y += velocityY;
+
+        // Apply gravity to the vertical velocity
+        velocityY += gravity;
+
+        // Update coin position in the DOM
+        coin.style.left = `${x}px`;
+        coin.style.top = `${y}px`;
+
+        // Remove the coin if it falls out of view
+        if (y > window.innerHeight || x > window.innerWidth || x < 0) {
+            coin.remove();
+        } else {
+            requestAnimationFrame(animateCoin);
+        }
+    }
+
+    requestAnimationFrame(animateCoin);
+}
 
 
 function doUpdate() {
@@ -191,6 +233,7 @@ function loadLeaderboard() {
 function clickThis() {
     count++;
     console.log("Clicked!");
+    createCoin(0, 0);
     document.querySelector('.counter').textContent = count;
 }
 

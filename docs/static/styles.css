@@ -18,6 +18,16 @@ body{
 
 .image-container {
     touch-action: manipulation;
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.coin {
+    position: absolute;
+    width: 30px; /* Adjust size as needed */
+    pointer-events: none;
 }
 
 .leader {
