@@ -28,6 +28,7 @@ body{
     position: absolute;
     width: 30px; /* Adjust size as needed */
     pointer-events: none;
+    z-index: 5;
 }
 
 .leader {
@@ -66,11 +67,11 @@ body{
 
 .pavelimage {
     width: 60%;
+    z-index: 10;
     user-select: none; /* Disable text selection */
     -webkit-user-drag: none; /* Prevent dragging on Safari and Chrome */
     -webkit-touch-callout: none; /* Disable long press on Safari */
     -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
-
 }
 
 .pavelimage:hover {
