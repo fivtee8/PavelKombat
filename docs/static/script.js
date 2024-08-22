@@ -53,7 +53,7 @@ function addCoin() {
 
 function createCoin(x, y) {
     const coin = document.createElement("img");
-    coin.src = "/PavelKombat/static/coin.jpeg";  // Path to your coin image
+    coin.src = "/PavelKombat/static/coin.png";  // Path to your coin image
     coin.className = "coin";
     coin.style.left = `${x}px`;
     coin.style.top = `${y}px`;
