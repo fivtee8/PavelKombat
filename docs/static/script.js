@@ -28,7 +28,7 @@ document.querySelectorAll('img.pavelimage').forEach(function(img) {
     });
 });
 
-document.getElementById("clickable-image").addEventListener("click", function(event) {
+document.getElementById("mainimage").addEventListener("click", function(event) {
     createCoin(event.clientX, event.clientY);
 });
 
