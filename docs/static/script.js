@@ -20,7 +20,7 @@ document.querySelectorAll('img.pavelimage').forEach(function(img) {
 
     img.addEventListener('mousedown', function(e) {
         e.preventDefault(); // Prevent text highlighting
-        clickThis();; // Call your function here
+        // clickThis();; // Call your function here
     });
 
     img.addEventListener('click', function(e) {
