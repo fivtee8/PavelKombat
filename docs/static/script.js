@@ -20,7 +20,7 @@ document.querySelectorAll('img.pavelimage').forEach(function(img) {
 
     img.addEventListener('mousedown', function(e) {
         e.preventDefault(); // Prevent text highlighting
-        clickThis();; // Call your function here
+        // clickThis();; // Call your function here
     });
 
     img.addEventListener('click', function(e) {
@@ -28,8 +28,65 @@ document.querySelectorAll('img.pavelimage').forEach(function(img) {
     });
 });
 
+document.getElementById("mainimage").addEventListener("click", function(event) {
+    createCoin(event.clientX, event.clientY);
+});
+
+
 fetchStartDate();
 setupApp();
+
+function addCoin() {
+    // Assuming you have the image element with id="another-image"
+    const image = document.getElementById("mainimage");
+
+// Get the image's position and size
+    const rect = image.getBoundingClientRect();
+
+// Calculate the center coordinates
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+
+// Now you can call the createCoin function at the center of the image
+    createCoin(centerX, centerY);
+}
+
+function createCoin(x, y) {
+    const coin = document.createElement("img");
+    coin.src = "/PavelKombat/static/coin.png";  // Path to your coin image
+    coin.className = "coin";
+    coin.style.left = `${x}px`;
+    coin.style.top = `${y}px`;
+
+    document.getElementById("image-container").appendChild(coin);
+
+    // Set initial velocity and random direction
+    let velocityX = (Math.random() - 0.5) * 10; // Random horizontal speed
+    let velocityY = -Math.random() * 15 - 5; // Random upward speed
+    let gravity = 0.5; // Gravity effect
+
+    function animateCoin() {
+        // Update position based on velocity
+        x += velocityX;
+        y += velocityY;
+
+        // Apply gravity to the vertical velocity
+        velocityY += gravity;
+
+        // Update coin position in the DOM
+        coin.style.left = `${x}px`;
+        coin.style.top = `${y}px`;
+
+        // Remove the coin if it falls out of view
+        if (y > window.innerHeight || x > window.innerWidth || x < 0) {
+            coin.remove();
+        } else {
+            requestAnimationFrame(animateCoin);
+        }
+    }
+
+    requestAnimationFrame(animateCoin);
+}
 
 
 function doUpdate() {
@@ -191,6 +248,7 @@ function loadLeaderboard() {
 function clickThis() {
     count++;
     console.log("Clicked!");
+    addCoin();
     document.querySelector('.counter').textContent = count;
 }
 
