@@ -36,6 +36,21 @@ document.getElementById("clickable-image").addEventListener("click", function(ev
 fetchStartDate();
 setupApp();
 
+function addCoin() {
+    // Assuming you have the image element with id="another-image"
+    const image = document.getElementById("mainimage");
+
+// Get the image's position and size
+    const rect = image.getBoundingClientRect();
+
+// Calculate the center coordinates
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+
+// Now you can call the createCoin function at the center of the image
+    createCoin(centerX, centerY);
+}
+
 function createCoin(x, y) {
     const coin = document.createElement("img");
     coin.src = "/PavelKombat/static/coin.jpeg";  // Path to your coin image
@@ -233,7 +248,7 @@ function loadLeaderboard() {
 function clickThis() {
     count++;
     console.log("Clicked!");
-    createCoin(0, 0);
+    addCoin();
     document.querySelector('.counter').textContent = count;
 }
 
