@@ -143,18 +143,81 @@ class TestServer(unittest.TestCase):
             if message != 'success':
                 self.fail(message)
 
-            username, firstname, lastname, clicks, banned, time_up = cur.execute('SELECT username, firstname, lastname, clicks, banned, time FROM Players WHERE tgid = 1').fetchone()
+            username, firstname, lastname, clicks, banned, time_up, ref = cur.execute('SELECT username, firstname, lastname, clicks, banned, time, ref FROM Players WHERE tgid = 1').fetchone()
+
+            ref_true = all([True for x in ref if x in '1234567890ABCDEF'])
 
             self.assertEqual(username, 'usr', 'Wrong username')
             self.assertEqual(lastname, 'last', 'lastname wrong')
             self.assertEqual(clicks, 0)
+            self.assertTrue(ref_true)
             self.assertEqual(banned, '0')
             self.assertEqual(time_up, 0)
             self.assertEqual(firstname, name, f'Error registering name {name}')
 
+            # test get ref
+
+            response = requests.get('http://127.0.0.1:5005/fetchref/1').json()['ref']
+            self.assertEqual(response, ref)
+
+
             # clean up
             cur.execute('DELETE FROM Players WHERE tgid = 1')
             cur.execute('COMMIT')
+
+    def test_ref_denied(self):
+        # staging
+        con = sqlite3.connect('database.db')
+        cur = con.cursor()
+        cur.execute('DELETE FROM Players WHERE tgid = 1')
+        cur.execute('INSERT INTO Players (tgid, clicks, banned, ref) VALUES (1, 100, "0", "testref")')
+        cur.execute('INSERT INTO Players (tgid, clicks, banned, is_reffed) VALUES (2, 100, "0", 1)')
+        cur.execute('COMMIT')
+
+        # test denied case
+        message = requests.get('http://127.0.0.1:5005/doref/2/testref').json()['message']
+        self.assertEqual(message, 'denied')
+
+        # clean up
+        cur.execute('DELETE FROM Players WHERE tgid = 1')
+        cur.execute('COMMIT')
+
+    def test_ref_invalid(self):
+        # staging
+        con = sqlite3.connect('database.db')
+        cur = con.cursor()
+        cur.execute('DELETE FROM Players WHERE tgid = 1')
+        cur.execute('INSERT INTO Players (tgid, clicks, banned, is_reffed) VALUES (1, 100, "0", 0)')
+        cur.execute('COMMIT')
+
+        # test invalid case
+        message = requests.get('http://127.0.0.1:5005/doref/1/thisisinvalid').json()['message']
+        self.assertEqual(message, 'invalid')
+
+        # clean up
+        cur.execute('DELETE FROM Players WHERE tgid = 1')
+        cur.execute('COMMIT')
+
+    def test_ref_ok(self):
+        # staging
+        con = sqlite3.connect('database.db')
+        cur = con.cursor()
+        cur.execute('DELETE FROM Players WHERE tgid = 1')
+        cur.execute('INSERT INTO Players (tgid, clicks, banned, ref) VALUES (1, 0, "0", "testref")')
+        cur.execute('INSERT INTO Players (tgid, clicks, banned, is_reffed) VALUES (2, 0, "0", 0)')
+        cur.execute('COMMIT')
+
+        # test
+        message = requests.get('http://127.0.0.1:5005/doref/2/testref').json()['message']
+        self.assertEqual(message, 'ok')
+
+        player_clicks = cur.execute('SELECT clicks FROM Players WHERE tgid = 2').fetchone()[0]
+        donor_clicks = cur.execute('SELECT clicks FROM Players WHERE tgid = 1').fetchone()[0]
+        reffed = cur.execute('SELECT is_reffed FROM Players WHERE tgid = 2').fetchone()[0]
+
+        self.assertEqual(player_clicks, 1000)
+        self.assertEqual(donor_clicks, 500)
+        self.assertEqual(reffed, 1)
 
     def test_update_clicks(self):
         # staging
