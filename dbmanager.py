@@ -132,7 +132,7 @@ async def register(tgid=0):
     ref = hex(ref)[2:].upper()
 
     try:
-        values_str = str(tgid) + ', 0, "' + '", "'.join([usr, name, last, "0"]) + '"' + f'"{ref}"'
+        values_str = str(tgid) + ', 0, "' + '", "'.join([usr, name, last, "0"]) + '", ' + f'"{ref}"'
         # print("Executing: " + f'INSERT INTO Players (tgid, username, firstname, lastname) VALUES ({values_str})')
         await cur.execute(f'INSERT INTO Players (tgid, time, username, firstname, lastname, banned, ref) VALUES ({values_str})')
         await cur.execute(f'UPDATE PLayers SET clicks = 0 WHERE tgid = {tgid}')
@@ -140,8 +140,8 @@ async def register(tgid=0):
 
         output = {'message': 'success'}
 
-    except aiosqlite.OperationalError:
-        output = {'message': 'operationalError!'}
+    except aiosqlite.OperationalError as e:
+        output = {'message': f'operationalError!\n\n{e}'}
 
     except Exception as e:
         output = {f'message': f'Uncaught exception of type {e}'}
@@ -161,16 +161,19 @@ async def fetch_ref(tgid=0):
 @app.route('/botapi/doref/<tgid>/<ref>')
 async def do_ref(tgid=0, ref=''):
     # check if reffed
-    is_reffed = (await (await cur.execute(f'SELECT is_reffed FROM Players WHERE tgid = {tgid}')).fetchone())
+    is_reffed = (await (await cur.execute(f'SELECT is_reffed FROM Players WHERE tgid = {tgid}')).fetchone())[0]
     is_reffed = bool(int(is_reffed))
 
     if is_reffed:
-        return {'messgae': 'denied'}
+        return {'message': 'denied'}
 
     donor_id = await (await cur.execute(f'SELECT tgid FROM Players WHERE ref = "{ref}"')).fetchone()
 
     if donor_id is None:
         return {'message': 'invalid'}
+
+    donor_id = donor_id[0]
+    print(f'donor id: {donor_id}')
 
     # update donor clicks
     old_donor_clicks = (await (await cur.execute(f'SELECT clicks FROM Players WHERE tgid = {donor_id}')).fetchone())[0]
