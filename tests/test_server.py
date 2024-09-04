@@ -65,7 +65,7 @@ class TestServer(unittest.TestCase):
         self.assertEqual(req, '1')
 
         # clean up
-        cur.execute('DELETE FROM Players WHERE tgid = 1')
+        cur.execute('DELETE FROM Players WHERE tgid < 20')
         cur.execute('COMMIT')
 
     def test_start_time(self):
@@ -99,7 +99,7 @@ class TestServer(unittest.TestCase):
         # staging
         con = sqlite3.connect('database.db')
         cur = con.cursor()
-        cur.execute('DELETE FROM Players WHERE tgid = 1')
+        cur.execute('DELETE FROM Players WHERE tgid < 20')
         cur.execute('COMMIT')
 
         try:
@@ -118,14 +118,14 @@ class TestServer(unittest.TestCase):
             self.fail('Server Error')
 
         # clean up
-        cur.execute('DELETE FROM Players WHERE tgid = 1')
+        cur.execute('DELETE FROM Players WHERE tgid < 20')
         cur.execute('COMMIT')
 
     def test_register(self):
         # staging
         con = sqlite3.connect('database.db')
         cur = con.cursor()
-        cur.execute('DELETE FROM Players WHERE tgid = 1')
+        cur.execute('DELETE FROM Players WHERE tgid < 20')
         cur.execute('COMMIT')
 
         for name in ["hello", 'привет', '☃☃☃☃']:
@@ -141,26 +141,95 @@ class TestServer(unittest.TestCase):
                 self.fail('Request failed. Text: ' + raw_message.text)
 
             if message != 'success':
-                self.fail(message)
+                self.assertEqual(0, 1, f'message: {message}; raw text: {raw_message.text}')
 
-            username, firstname, lastname, clicks, banned, time_up = cur.execute('SELECT username, firstname, lastname, clicks, banned, time FROM Players WHERE tgid = 1').fetchone()
+            username, firstname, lastname, clicks, banned, time_up, ref = cur.execute('SELECT username, firstname, lastname, clicks, banned, time, ref FROM Players WHERE tgid = 1').fetchone()
+
+            ref_true = all([True for x in ref if x in '1234567890ABCDEF'])
 
             self.assertEqual(username, 'usr', 'Wrong username')
             self.assertEqual(lastname, 'last', 'lastname wrong')
             self.assertEqual(clicks, 0)
+            self.assertTrue(ref_true)
             self.assertEqual(banned, '0')
             self.assertEqual(time_up, 0)
             self.assertEqual(firstname, name, f'Error registering name {name}')
 
+            # test get ref
+
+            response = requests.get('http://127.0.0.1:5005/botapi/fetchref/1').json()['ref']
+            self.assertEqual(response, ref)
+
+
             # clean up
-            cur.execute('DELETE FROM Players WHERE tgid = 1')
+            cur.execute('DELETE FROM Players WHERE tgid < 20')
             cur.execute('COMMIT')
+
+    def test_ref_denied(self):
+        # staging
+        con = sqlite3.connect('database.db')
+        cur = con.cursor()
+        cur.execute('DELETE FROM Players WHERE tgid < 20')
+        cur.execute('INSERT INTO Players (tgid, clicks, banned, ref) VALUES (1, 100, "0", "testref")')
+        cur.execute('INSERT INTO Players (tgid, clicks, banned, is_reffed) VALUES (2, 100, "0", 1)')
+        cur.execute('COMMIT')
+
+        is_clicks = cur.execute('SELECT clicks FROM Players WHERE tgid = 2').fetchone()[0]
+        self.assertEqual(is_clicks, 100)
+
+        is_reffed = cur.execute('SELECT is_reffed FROM Players WHERE tgid = 2').fetchone()[0]
+        self.assertEqual(is_reffed, 1)
+
+        # test denied case
+        message = requests.get('http://127.0.0.1:5005/botapi/doref/2/testref').json()['message']
+        self.assertEqual(message, 'denied')
+
+        # clean up
+        cur.execute('DELETE FROM Players WHERE tgid < 20')
+        cur.execute('COMMIT')
+
+    def test_ref_invalid(self):
+        # staging
+        con = sqlite3.connect('database.db')
+        cur = con.cursor()
+        cur.execute('DELETE FROM Players WHERE tgid < 20')
+        cur.execute('INSERT INTO Players (tgid, clicks, banned, is_reffed) VALUES (1, 100, "0", 0)')
+        cur.execute('COMMIT')
+
+        # test invalid case
+        message = requests.get('http://127.0.0.1:5005/botapi/doref/1/thisisinvalid').json()['message']
+        self.assertEqual(message, 'invalid')
+
+        # clean up
+        cur.execute('DELETE FROM Players WHERE tgid < 20')
+        cur.execute('COMMIT')
+
+    def test_ref_ok(self):
+        # staging
+        con = sqlite3.connect('database.db')
+        cur = con.cursor()
+        cur.execute('DELETE FROM Players WHERE tgid < 20')
+        cur.execute('INSERT INTO Players (tgid, clicks, banned, ref) VALUES (1, 0, "0", "testref")')
+        cur.execute('INSERT INTO Players (tgid, clicks, banned, is_reffed) VALUES (2, 0, "0", 0)')
+        cur.execute('COMMIT')
+
+        # test
+        message = requests.get('http://127.0.0.1:5005/botapi/doref/2/testref').json()['message']
+        self.assertEqual(message, 'ok')
+
+        player_clicks = cur.execute('SELECT clicks FROM Players WHERE tgid = 2').fetchone()[0]
+        donor_clicks = cur.execute('SELECT clicks FROM Players WHERE tgid = 1').fetchone()[0]
+        reffed = cur.execute('SELECT is_reffed FROM Players WHERE tgid = 2').fetchone()[0]
+
+        self.assertEqual(player_clicks, 1000, f'clicks is {player_clicks}')
+        self.assertEqual(donor_clicks, 500, f'clicks is {donor_clicks}')
+        self.assertEqual(reffed, 1)
 
     def test_update_clicks(self):
         # staging
         con = sqlite3.connect('database.db')
         cur = con.cursor()
-        cur.execute('DELETE FROM Players WHERE tgid = 1')
+        cur.execute('DELETE FROM Players WHERE tgid < 20')
         cur.execute('INSERT INTO Players (tgid, clicks, banned, query_id, time) VALUES (1, 100, "0", "dev", 0)')
         cur.execute('COMMIT')
 
@@ -172,7 +241,7 @@ class TestServer(unittest.TestCase):
         except requests.exceptions.JSONDecodeError:
             self.fail('Server error')
 
-        cur.execute('DELETE FROM Players WHERE tgid = 1')
+        cur.execute('DELETE FROM Players WHERE tgid < 20')
         cur.execute('INSERT INTO Players (tgid, clicks, banned, query_id, time) VALUES (1, 100, "0", "dev", 0)')
         cur.execute('COMMIT')
 
@@ -185,7 +254,7 @@ class TestServer(unittest.TestCase):
             self.fail('Server error')
 
         for click_count in [-1, 100, 'yabadaba']:
-            cur.execute('DELETE FROM Players WHERE tgid = 1')
+            cur.execute('DELETE FROM Players WHERE tgid < 20')
             cur.execute('INSERT INTO Players (tgid, clicks, banned, query_id, time) VALUES (1, 100, "0", "dev", 0)')
             cur.execute('COMMIT')
 
@@ -196,7 +265,7 @@ class TestServer(unittest.TestCase):
             except requests.exceptions.JSONDecodeError:
                 self.fail('Server error')
 
-        cur.execute('DELETE FROM Players WHERE tgid = 1')
+        cur.execute('DELETE FROM Players WHERE tgid < 20')
         cur.execute('INSERT INTO Players (tgid, clicks, banned, query_id, time) VALUES (1, 100, "1", "dev", 0)')
         cur.execute('COMMIT')
 
@@ -207,7 +276,7 @@ class TestServer(unittest.TestCase):
         except requests.exceptions.JSONDecodeError:
             self.fail('Server error')
 
-        cur.execute('DELETE FROM Players WHERE tgid = 1')
+        cur.execute('DELETE FROM Players WHERE tgid < 20')
         cur.execute('INSERT INTO Players (tgid, clicks, banned, query_id, time) VALUES (1, 100, "0", "dev", 0)')
         cur.execute('COMMIT')
 
@@ -221,7 +290,7 @@ class TestServer(unittest.TestCase):
         except requests.exceptions.JSONDecodeError:
             self.fail('Server error')
 
-        cur.execute('DELETE FROM Players WHERE tgid = 1')
+        cur.execute('DELETE FROM Players WHERE tgid < 20')
         cur.execute('INSERT INTO Players (tgid, clicks, banned, query_id, time) VALUES (1, 100, "0", "dev", 0)')
         cur.execute('COMMIT')
 
@@ -243,7 +312,7 @@ class TestServer(unittest.TestCase):
         except requests.exceptions.JSONDecodeError:
             self.fail('Server error')
 
-        cur.execute('DELETE FROM Players WHERE tgid = 1')
+        cur.execute('DELETE FROM Players WHERE tgid < 20')
         cur.execute('INSERT INTO Players (tgid, clicks, banned, query_id, time) VALUES (1, 100, "0", "dev", 0)')
         cur.execute('COMMIT')
 
@@ -259,14 +328,14 @@ class TestServer(unittest.TestCase):
             self.fail('Server error')
 
         # clean up
-        cur.execute('DELETE FROM Players WHERE tgid = 1')
+        cur.execute('DELETE FROM Players WHERE tgid < 20')
         cur.execute('COMMIT')
 
     def test_set_awaiting_query_id(self):
         # staging
         con = sqlite3.connect('database.db')
         cur = con.cursor()
-        cur.execute('DELETE FROM Players WHERE tgid = 1')
+        cur.execute('DELETE FROM Players WHERE tgid < 20')
         cur.execute('INSERT INTO Players (tgid, banned, awaiting_query) VALUES (1, "0", 0)')
         cur.execute('COMMIT')
 
@@ -284,7 +353,7 @@ class TestServer(unittest.TestCase):
             self.fail('Uncaught serverside exception')
 
         # test wrong botkey
-        cur.execute('DELETE FROM Players WHERE tgid = 1')
+        cur.execute('DELETE FROM Players WHERE tgid < 20')
         cur.execute('INSERT INTO Players (tgid, banned, awaiting_query) VALUES (1, "0", 0)')
         cur.execute('COMMIT')
 
@@ -297,14 +366,14 @@ class TestServer(unittest.TestCase):
             self.fail('Uncaught serverside exception')
 
         # clean up
-        cur.execute('DELETE FROM Players WHERE tgid = 1')
+        cur.execute('DELETE FROM Players WHERE tgid < 20')
         cur.execute('COMMIT')
 
     def test_set_query_id(self):
         # staging
         con = sqlite3.connect('database.db')
         cur = con.cursor()
-        cur.execute('DELETE FROM Players WHERE tgid = 1')
+        cur.execute('DELETE FROM Players WHERE tgid < 20')
         cur.execute('INSERT INTO Players (tgid, banned, awaiting_query, query_id) VALUES (1, "0", 1, "stale")')
         cur.execute('COMMIT')
 
@@ -316,7 +385,7 @@ class TestServer(unittest.TestCase):
         except requests.exceptions.JSONDecodeError:
             self.fail('Uncaught serverside exception')
 
-        cur.execute('DELETE FROM Players WHERE tgid = 1')
+        cur.execute('DELETE FROM Players WHERE tgid < 20')
         cur.execute('INSERT INTO Players (tgid, banned, awaiting_query, query_id) VALUES (1, "0", 0, "stale")')
         cur.execute('COMMIT')
 
@@ -328,31 +397,30 @@ class TestServer(unittest.TestCase):
         except requests.exceptions.JSONDecodeError:
             self.fail('Uncaught serverside exception')
 
-        cur.execute('DELETE FROM Players WHERE tgid = 1')
+        cur.execute('DELETE FROM Players WHERE tgid < 20')
         cur.execute('COMMIT')
 
     def test_leaderboard(self):
         # staging
         con = sqlite3.connect('database.db')
         cur = con.cursor()
-        cur.execute('DELETE FROM Players WHERE tgid = 1')
+        cur.execute('DELETE FROM Players WHERE tgid < 20')
 
         for i in range(1, 11):
-            cur.execute(f'INSERT INTO Players (tgid, firstname, clicks, banned) VALUES ({i}, {i}, "{i * 1000000}", "0")')
+            cur.execute(f'INSERT INTO Players (tgid, firstname, clicks, banned) VALUES ({i}, "{i}", {i * 1000000}, "0")')
 
         cur.execute('COMMIT')
 
         try:
             response = requests.get(f'http://127.0.0.1:5005/leaderboard/').json()
 
-            good_list = [[str(x), str(x * 1000000)] for x in range(1, 11)]
+            good_list = [[str(x), str(x * 1000000)] for x in range(1, 11)][::-1]
 
             self.assertEqual(good_list, response['board'])
         except json.JSONDecodeError:
             self.fail('Uncaught serverside exception')
 
-        for i in range(1, 11):
-            cur.execute(f'DELETE FROM Players WHERE tgid = {i}')
+        cur.execute(f'DELETE FROM Players WHERE tgid < 20')
         cur.execute('COMMIT')
 
 

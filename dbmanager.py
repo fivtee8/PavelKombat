@@ -1,5 +1,6 @@
 import os
 import time
+import random
 
 import aiosqlite
 import uvicorn
@@ -127,18 +128,20 @@ async def register(tgid=0):
     name = params['name']
     last = params['last']
     usr = params['usr']
+    ref = random.randint(0, 18446744073709551615)
+    ref = hex(ref)[2:].upper()
 
     try:
-        values_str = str(tgid) + ', 0, "' + '", "'.join([usr, name, last, "0"]) + '"'
+        values_str = str(tgid) + ', 0, "' + '", "'.join([usr, name, last, "0"]) + '", ' + f'"{ref}"'
         # print("Executing: " + f'INSERT INTO Players (tgid, username, firstname, lastname) VALUES ({values_str})')
-        await cur.execute(f'INSERT INTO Players (tgid, time, username, firstname, lastname, banned) VALUES ({values_str})')
+        await cur.execute(f'INSERT INTO Players (tgid, time, username, firstname, lastname, banned, ref) VALUES ({values_str})')
         await cur.execute(f'UPDATE PLayers SET clicks = 0 WHERE tgid = {tgid}')
         await cur.execute('COMMIT')
 
         output = {'message': 'success'}
 
-    except aiosqlite.OperationalError:
-        output = {'message': 'operationalError!'}
+    except aiosqlite.OperationalError as e:
+        output = {'message': f'operationalError!\n\n{e}'}
 
     except Exception as e:
         output = {f'message': f'Uncaught exception of type {e}'}
@@ -147,6 +150,45 @@ async def register(tgid=0):
     resp.headers['Content-Type'] = 'application/json'
 
     return resp
+
+
+@app.route('/botapi/fetchref/<tgid>')
+async def fetch_ref(tgid=0):
+    ref = (await (await cur.execute(f'SELECT ref FROM Players WHERE tgid = {tgid}')).fetchone())[0]
+    return {'ref': ref}
+
+
+@app.route('/botapi/doref/<tgid>/<ref>')
+async def do_ref(tgid=0, ref=''):
+    # check if reffed
+    is_reffed = (await (await cur.execute(f'SELECT is_reffed FROM Players WHERE tgid = {tgid}')).fetchone())[0]
+    is_reffed = bool(int(is_reffed))
+
+    if is_reffed:
+        return {'message': 'denied'}
+
+    donor_id = await (await cur.execute(f'SELECT tgid FROM Players WHERE ref = "{ref}"')).fetchone()
+
+    if donor_id is None:
+        return {'message': 'invalid'}
+
+    donor_id = donor_id[0]
+    print(f'donor id: {donor_id}')
+
+    # update donor clicks
+    old_donor_clicks = (await (await cur.execute(f'SELECT clicks FROM Players WHERE tgid = {donor_id}')).fetchone())[0]
+    new_donor_clicks = old_donor_clicks + 500
+    await cur.execute(f'UPDATE Players SET clicks = {new_donor_clicks} WHERE tgid = {donor_id}')
+
+    # update player clicks
+    old_player_clicks = (await (await cur.execute(f'SELECT clicks FROM Players WHERE tgid = {tgid}')).fetchone())[0]
+    new_player_clicks = old_player_clicks + 1000
+    await cur.execute(f'UPDATE Players SET clicks = {new_player_clicks} WHERE tgid = {tgid}')
+    await cur.execute(f'UPDATE Players SET is_reffed = 1 WHERE tgid = {tgid}')
+
+    await cur.execute('COMMIT')
+
+    return {'message': 'ok'}
 
 
 @app.route('/botapi/set_await_query_id/<tgid>/<key>')
