@@ -55,7 +55,7 @@ function createCoin(x, y) {
     const coin = document.createElement("img");
 
     const val = Math.random();
-    if (val < 0.1) {
+    if (val < 0.00007) {
         coin.src = "/PavelKombat/static/tooth.png";  // Path to your coin image
     } else {
         coin.src = "/PavelKombat/static/coin.png";  // Path to your coin image
@@ -255,7 +255,7 @@ function loadLeaderboard() {
 function clickThis() {
     count++;
     console.log("Clicked!");
-    addCoin();
+    // addCoin();
     document.querySelector('.counter').textContent = count;
 }
 
