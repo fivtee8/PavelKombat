@@ -49,6 +49,46 @@ async def middleware(handler, event: types.Update, data: Dict[str, Any]):
             return await handler(event, data)
 
 
+@dp.message(aiogram.filters.Command('myref'))
+async def myref(message: types.Message):
+    async with aiohttp.request(method='GET',
+                               url=f'https://fond-pangolin-lately.ngrok-free.app/botapi/fetchref/{message.from_user.id}') as status_req:
+        status = (await status_req.json())['ref']
+
+    sent = await message.answer(status)
+
+    await asyncio.sleep(15)
+    await bot.delete_message(sent.chat.id, sent.message_id)
+    await bot.delete_message(message.chat.id, message.message_id)
+
+
+@dp.message(aiogram.filters.Command('ref'))
+async def ref(message: types.Message):
+    ref_code = message.text.split()[1]
+
+    async with aiohttp.request(method='GET',
+                               url=f'https://fond-pangolin-lately.ngrok-free.app/botapi/doref/{message.from_user.id}/{ref_code}') as status_req:
+        status = (await status_req.json())['message']
+
+    text = ''
+    if status == 'denied':
+        text = 'Вы уже использовали реферальный код!'
+    elif status == 'invalid':
+        text = 'Такого кода не существует...'
+    else:
+        text = 'Успешно! Вам зачисленно 1000 ПавелПоинтов'
+
+    sent = await message.answer(text)
+
+    if status == 'ok':
+        await asyncio.sleep(4*60*60)
+    else:
+        await asyncio.sleep(15)
+
+    await bot.delete_message(sent.chat.id, sent.message_id)
+    await bot.delete_message(message.chat.id, message.message_id)
+
+
 @dp.message(CommandStart())
 async def start_handler(message: types.Message):
     async with aiohttp.request(method='GET',

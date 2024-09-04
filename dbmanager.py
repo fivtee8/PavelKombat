@@ -132,9 +132,9 @@ async def register(tgid=0):
     ref = hex(ref)[2:].upper()
 
     try:
-        values_str = str(tgid) + ', 0, "' + '", "'.join([usr, name, last, "0"]) + '", ' + f'"{ref}"'
+        values_str = str(tgid) + ', 0, "' + '", "'.join([usr, name, last, "0"]) + '", ' + f'"{ref}", 0'
         # print("Executing: " + f'INSERT INTO Players (tgid, username, firstname, lastname) VALUES ({values_str})')
-        await cur.execute(f'INSERT INTO Players (tgid, time, username, firstname, lastname, banned, ref) VALUES ({values_str})')
+        await cur.execute(f'INSERT INTO Players (tgid, time, username, firstname, lastname, banned, ref, is_reffed) VALUES ({values_str})')
         await cur.execute(f'UPDATE PLayers SET clicks = 0 WHERE tgid = {tgid}')
         await cur.execute('COMMIT')
 
@@ -165,30 +165,34 @@ async def do_ref(tgid=0, ref=''):
     is_reffed = bool(int(is_reffed))
 
     if is_reffed:
-        return {'message': 'denied'}
+        output = {'message': 'denied'}
+    else:
+        donor_id = await (await cur.execute(f'SELECT tgid FROM Players WHERE ref = "{ref}"')).fetchone()
 
-    donor_id = await (await cur.execute(f'SELECT tgid FROM Players WHERE ref = "{ref}"')).fetchone()
+        if donor_id is None:
+            output = {'message': 'invalid'}
+        else:
+            donor_id = donor_id[0]
 
-    if donor_id is None:
-        return {'message': 'invalid'}
+            # update donor clicks
+            old_donor_clicks = (await (await cur.execute(f'SELECT clicks FROM Players WHERE tgid = {donor_id}')).fetchone())[0]
+            new_donor_clicks = old_donor_clicks + 500
+            await cur.execute(f'UPDATE Players SET clicks = {new_donor_clicks} WHERE tgid = {donor_id}')
 
-    donor_id = donor_id[0]
-    print(f'donor id: {donor_id}')
+            # update player clicks
+            old_player_clicks = (await (await cur.execute(f'SELECT clicks FROM Players WHERE tgid = {tgid}')).fetchone())[0]
+            new_player_clicks = old_player_clicks + 1000
+            await cur.execute(f'UPDATE Players SET clicks = {new_player_clicks} WHERE tgid = {tgid}')
+            await cur.execute(f'UPDATE Players SET is_reffed = 1 WHERE tgid = {tgid}')
 
-    # update donor clicks
-    old_donor_clicks = (await (await cur.execute(f'SELECT clicks FROM Players WHERE tgid = {donor_id}')).fetchone())[0]
-    new_donor_clicks = old_donor_clicks + 500
-    await cur.execute(f'UPDATE Players SET clicks = {new_donor_clicks} WHERE tgid = {donor_id}')
+            await cur.execute('COMMIT')
 
-    # update player clicks
-    old_player_clicks = (await (await cur.execute(f'SELECT clicks FROM Players WHERE tgid = {tgid}')).fetchone())[0]
-    new_player_clicks = old_player_clicks + 1000
-    await cur.execute(f'UPDATE Players SET clicks = {new_player_clicks} WHERE tgid = {tgid}')
-    await cur.execute(f'UPDATE Players SET is_reffed = 1 WHERE tgid = {tgid}')
+            output = {'message': 'ok'}
 
-    await cur.execute('COMMIT')
+    resp = flask.Response(json.dumps(output))
+    resp.headers['Content-Type'] = 'application/json'
 
-    return {'message': 'ok'}
+    return resp
 
 
 @app.route('/botapi/set_await_query_id/<tgid>/<key>')
