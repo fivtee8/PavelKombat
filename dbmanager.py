@@ -171,6 +171,8 @@ async def do_ref(tgid=0, ref=''):
 
         if donor_id is None:
             output = {'message': 'invalid'}
+        elif donor_id == tgid:
+            output = {'message': 'selfref'}
         else:
             donor_id = donor_id[0]
 

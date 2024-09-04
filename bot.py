@@ -109,6 +109,8 @@ async def ref(message: types.Message, code=None, ignore_del=False):
         text = 'Вы уже использовали реферальный код!'
     elif status == 'invalid':
         text = 'Такого кода не существует...'
+    elif status == 'selfref':
+        text = 'Хитро!'
     else:
         text = 'Успешно! Вам зачисленно 1000 ПавелПоинтов'
 
