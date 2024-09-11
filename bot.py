@@ -67,12 +67,16 @@ async def middleware(handler, event: types.Update, data: Dict[str, Any]):
     message = event.message or event.callback_query.message
 
     if str(message.from_user.id) in awaiting_name:
+        if '/' == message.text[0] or len(message.text) < 3:
+            await message.reply('Неверное имя.')
+            return
+
         # code to update user
 
         async with aiohttp.request(method='GET', headers={'Content-Type': 'application/json'}, url=f'https://fond-pangolin-lately.ngrok-free.app/botapi/{BOT_KEY}/registername/{message.from_user.id}', data=json.dumps({'text': message.text})):
             pass
 
-        repped = await message.reply('Добро пожаловать в игру')
+        repped = await message.reply('Добро пожаловать в игру!\n\nДля запуска пропишите /start.')
         awaiting_name.remove(str(message.from_user.id))
 
         await asyncio.sleep(15)
@@ -87,7 +91,7 @@ async def middleware(handler, event: types.Update, data: Dict[str, Any]):
         raise aiogram.dispatcher.event.bases.CancelHandler()
     elif status == 2:
         awaiting_name.append(str(message.from_user.id))
-        repped = await message.reply('ТЕКСТА СЮДА')
+        repped = await message.reply('Введите свое имя и номер класса.\n\n_Это необходимо для того, чтобы мы могли вас найти в случае выигрыша или, возможно, для сотрудничества. Ваши данные в безопасности. Спасибо!_', parse_mode='markdown')
 
         await asyncio.sleep(15)
         await bot.delete_message(message.chat.id, message.message_id)
