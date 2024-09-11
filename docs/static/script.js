@@ -28,10 +28,6 @@ document.querySelectorAll('img.pavelimage').forEach(function(img) {
     });
 });
 
-document.getElementById("mainimage").addEventListener("click", function(event) {
-    addCoin();
-});
-
 
 fetchStartDate();
 setupApp();
@@ -252,7 +248,7 @@ function loadLeaderboard() {
 function clickThis() {
     count++;
     console.log("Clicked!");
-    // addCoin();
+    addCoin();
     document.querySelector('.counter').textContent = count;
 }
 
