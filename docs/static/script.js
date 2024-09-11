@@ -38,21 +38,11 @@ setupApp();
 
 function addCoin() {
     // Assuming you have the image element with id="another-image"
-    const image = document.getElementById("mainimage");
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.outerHeight;
 
-// Get the image's position and size
-    const rect = image.getBoundingClientRect();
-
-    const imgWidth = image.width;
-    const imgHeight = image.height;
-
-    const imgLeft = rect.left + window.scrollX;
-    const imgTop = rect.top + window.scrollY;
-
-
-// Calculate the center coordinates
-    const centerX = imgLeft + imgWidth / 2;
-    const centerY = imgTop + imgHeight / 2;
+    const centerX = viewportWidth / 2;
+    const centerY = viewportHeight / 2;
 
 // Now you can call the createCoin function at the center of the image
     createCoin(centerX, centerY);
