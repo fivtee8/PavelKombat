@@ -266,7 +266,7 @@ async def update_clicks(tgid=0, query_id='', count=''):
 
         count = int(count)
 
-        if count < 0 or count > 60:
+        if count < 0 or count > 120:
             banned = True
 
         # Check if query_id matches
