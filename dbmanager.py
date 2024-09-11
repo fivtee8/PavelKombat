@@ -197,6 +197,17 @@ async def do_ref(tgid=0, ref=''):
     return resp
 
 
+@app.route('/botapi/<key>/registername/<tgid>')
+async def register_name(key=0, tgid=0):
+    if int(key) != int(os.getenv('botkey')):
+        return
+
+    text = request.json['text']
+
+    await cur.execute(f'INSERT INTO userdata (tgid, text) VALUES ({tgid}, "{text}")')
+    await cur.execute('COMMIT')
+
+
 @app.route('/botapi/set_await_query_id/<tgid>/<key>')
 async def set_awaiting_query_id(tgid=0, key=0):
     if int(key) != int(os.getenv('botkey')):

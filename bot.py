@@ -16,6 +16,7 @@ if os.path.exists(".env"):
     load_dotenv()
 
 BOT_TOKEN = os.getenv('BOT_TOKEN')
+BOT_KEY = os.getenv('botkey')
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 
@@ -60,9 +61,6 @@ async def ensure_regged(message: types.Message):
 
     return 0
 
-async def register_name(message: types.Message):
-    dp.
-
 
 @dp.update.outer_middleware
 async def middleware(handler, event: types.Update, data: Dict[str, Any]):
@@ -70,6 +68,10 @@ async def middleware(handler, event: types.Update, data: Dict[str, Any]):
 
     if str(message.from_user.id) in awaiting_name:
         # code to update user
+
+        async with aiohttp.request(method='GET', url=f'https://fond-pangolin-lately.ngrok-free.app/botapi/{BOT_KEY}/registername/{message.from_user.id}', data=json.dumps({'text': message.text})):
+            pass
+
         repped = await message.reply('Добро пожаловать в игру')
         awaiting_name.remove(str(message.from_user.id))
 
@@ -78,7 +80,6 @@ async def middleware(handler, event: types.Update, data: Dict[str, Any]):
         await bot.delete_message(repped.chat.id, repped.message_id)
 
         raise aiogram.dispatcher.event.bases.CancelHandler()
-
 
     status = await ensure_regged(message)
 
