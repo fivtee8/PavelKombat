@@ -69,7 +69,7 @@ async def middleware(handler, event: types.Update, data: Dict[str, Any]):
     if str(message.from_user.id) in awaiting_name:
         # code to update user
 
-        async with aiohttp.request(method='GET', url=f'https://fond-pangolin-lately.ngrok-free.app/botapi/{BOT_KEY}/registername/{message.from_user.id}', data=json.dumps({'text': message.text})):
+        async with aiohttp.request(method='GET', headers={'Content-Type': 'application/json'}, url=f'https://fond-pangolin-lately.ngrok-free.app/botapi/{BOT_KEY}/registername/{message.from_user.id}', data=json.dumps({'text': message.text})):
             pass
 
         repped = await message.reply('Добро пожаловать в игру')
