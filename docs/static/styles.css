@@ -20,7 +20,7 @@ body{
     touch-action: manipulation;
     position: relative;
     width: 100%;
-    overflow: hidden;
+    overflow: visible;
 }
 
 .coin {

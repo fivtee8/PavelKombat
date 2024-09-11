@@ -43,9 +43,16 @@ function addCoin() {
 // Get the image's position and size
     const rect = image.getBoundingClientRect();
 
+    const imgWidth = img.width;
+    const imgHeight = img.height;
+
+    const imgLeft = rect.left + window.scrollX;
+    const imgTop = rect.top + window.scrollY;
+
+
 // Calculate the center coordinates
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
+    const centerX = imgLeft + imgWidth / 2;
+    const centerY = imgTop + imgHeight / 2;
 
 // Now you can call the createCoin function at the center of the image
     createCoin(centerX, centerY);
