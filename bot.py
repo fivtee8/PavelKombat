@@ -15,10 +15,11 @@ if os.path.exists(".env"):
 
     load_dotenv()
 
-# now we have them as a handy python strings!
 BOT_TOKEN = os.getenv('BOT_TOKEN')
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
+
+awaiting_name = []
 
 
 async def check_subbed(message: types.message):
@@ -53,21 +54,49 @@ async def ensure_regged(message: types.Message):
                                    headers=headers) as register_req:
             register = await register_req.json()
         if not register['message'] == 'success':
-            return False
+            return 1
 
-    return True
+        return 2
+
+    return 0
+
+async def register_name(message: types.Message):
+    dp.
 
 
 @dp.update.outer_middleware
 async def middleware(handler, event: types.Update, data: Dict[str, Any]):
     message = event.message or event.callback_query.message
 
-    if not await ensure_regged(message):
+    if str(message.from_user.id) in awaiting_name:
+        # code to update user
+        repped = await message.reply('Добро пожаловать в игру')
+        awaiting_name.remove(str(message.from_user.id))
+
+        await asyncio.sleep(15)
+        await bot.delete_message(message.chat.id, message.message_id)
+        await bot.delete_message(repped.chat.id, repped.message_id)
+
+        raise aiogram.dispatcher.event.bases.CancelHandler()
+
+
+    status = await ensure_regged(message)
+
+    if status == 1:
+        raise aiogram.dispatcher.event.bases.CancelHandler()
+    elif status == 2:
+        awaiting_name.append(str(message.from_user.id))
+        repped = await message.reply('ТЕКСТА СЮДА')
+
+        await asyncio.sleep(15)
+        await bot.delete_message(message.chat.id, message.message_id)
+        await bot.delete_message(repped.chat.id, repped.message_id)
+
         raise aiogram.dispatcher.event.bases.CancelHandler()
 
     if message and message.text.startswith('/'):
         if not (await check_subbed(message)):
-            repped = await message.reply('Подпишись, падла!\n\n@pdevkprff')
+            repped = await message.reply(f'Подпишись, падла!\n\n{os.getenv("channel_id")}')
 
             await asyncio.sleep(15)
             await bot.delete_message(message.chat.id, message.message_id)
