@@ -43,8 +43,8 @@ function addCoin() {
 // Get the image's position and size
     const rect = image.getBoundingClientRect();
 
-    const imgWidth = img.width;
-    const imgHeight = img.height;
+    const imgWidth = image.width;
+    const imgHeight = image.height;
 
     const imgLeft = rect.left + window.scrollX;
     const imgTop = rect.top + window.scrollY;
