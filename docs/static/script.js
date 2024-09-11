@@ -29,7 +29,7 @@ document.querySelectorAll('img.pavelimage').forEach(function(img) {
 });
 
 document.getElementById("mainimage").addEventListener("click", function(event) {
-    createCoin(event.clientX, event.clientY);
+    addCoin();
 });
 
 
