@@ -132,9 +132,9 @@ async def register(tgid=0):
     ref = hex(ref)[2:].upper()
 
     try:
-        values_str = str(tgid) + ', 0, "' + '", "'.join([usr, name, last, "0"]) + '", ' + f'"{ref}", 0'
+        values_str = str(tgid) + ', 0, "' + '", "'.join([usr, name, last, "0"]) + '", ' + f'"{ref}", 0, 15'
         # print("Executing: " + f'INSERT INTO Players (tgid, username, firstname, lastname) VALUES ({values_str})')
-        await cur.execute(f'INSERT INTO Players (tgid, time, username, firstname, lastname, banned, ref, is_reffed) VALUES ({values_str})')
+        await cur.execute(f'INSERT INTO Players (tgid, time, username, firstname, lastname, banned, ref, is_reffed, strikes) VALUES ({values_str})')
         await cur.execute(f'UPDATE PLayers SET clicks = 0 WHERE tgid = {tgid}')
         await cur.execute('COMMIT')
 
@@ -239,6 +239,7 @@ async def set_query_id(tgid=0, query_id=''):
 @app.route('/put/clickcount/<tgid>/<query_id>/<count>')
 async def update_clicks(tgid=0, query_id='', count=''):
     banned = False
+    strike = False
 
     res = await (await cur.execute(f'SELECT banned FROM Players WHERE tgid = {tgid}')).fetchone()
     last_time = await (await cur.execute(f'SELECT time FROM Players WHERE tgid = {tgid}')).fetchone()
@@ -281,12 +282,21 @@ async def update_clicks(tgid=0, query_id='', count=''):
         now = int(time.time())
 
         if now - last_time < 4:
+            strike = True
+
+        old_strikes = (await (await cur.execute(f'SELECT strikes FROM Players WHERE tgid = {tgid}')).fetchone())[0]
+
+        if old_strikes < 0:
             banned = True
 
     if banned:
         await cur.execute(f'UPDATE Players SET banned = "1" WHERE tgid = {tgid}')
         await cur.execute('COMMIT')
         return {'stale': '0', 'banned': '1', 'clicks': str((await (await cur.execute(f'SELECT clicks FROM Players WHERE tgid = {tgid}')).fetchone())[0])}
+
+    if strike:
+        new_strikes = (await (await cur.execute(f'SELECT strikes FROM Players WHERE tgid = {tgid}')).fetchone())[0] - 1
+        await cur.execute(f'UPDATE Players SET strikes = {new_strikes} WHERE tgid = {tgid}')
 
     current_clicks = (await (await cur.execute(f'SELECT clicks FROM Players WHERE tgid = {tgid}')).fetchone())[0]
     new_clicks = current_clicks + count
