@@ -1,5 +1,6 @@
 var count = 0;
 var oldCount = 0;
+var energy = 0;
 var startDate;
 var runHours = 230;
 var tg = window.Telegram.WebApp;
@@ -109,6 +110,7 @@ function setupApp() {
     else {
         console.log('User is not banned');
         var updater = setInterval(doUpdate, 5000);
+        doUpdate();
     }
 }
 
@@ -156,7 +158,9 @@ function processClickResponse (data) {
 
     else {
         oldCount = data.clicks;
-        console.log('Updated clicks');
+        energy = data.energy;
+        updateEnergy();
+        console.log('Updated clicks and energy');
     }
 }
 
@@ -166,6 +170,10 @@ function fetchClickCount() {
 
 function fetchStartDate() {
     loadJSON('https://fond-pangolin-lately.ngrok-free.app/request/starttime/', updateStartDate);
+}
+
+function updateEnergy() {
+    document.querySelector('.energy').textContent = energy;
 }
 
 function updateClickCount(data) {
@@ -247,9 +255,11 @@ function loadLeaderboard() {
 
 function clickThis() {
     count++;
+    energy--;
     console.log("Clicked!");
     addCoin();
     document.querySelector('.counter').textContent = count;
+    updateEnergy();
 }
 
 function updateClock() {
