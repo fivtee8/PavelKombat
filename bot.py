@@ -67,8 +67,8 @@ async def middleware(handler, event: types.Update, data: Dict[str, Any]):
     message = event.message or event.callback_query.message
 
     if str(message.from_user.id) in awaiting_name:
-        if '/' == message.text[0] or len(message.text) < 3:
-            await message.reply('Неверное имя.')
+        if '/' == message.text[0] or len(message.text) < 4:
+            await message.reply('Неверное имя.\n\nВведите свое имя и номер класса.\n_Это необходимо для того, чтобы мы могли вас найти в случае выигрыша или, возможно, для сотрудничества. Ваши данные в безопасности. Спасибо!_')
             return
 
         # code to update user

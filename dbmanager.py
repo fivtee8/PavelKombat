@@ -255,13 +255,13 @@ async def process_energy(tgid, spent_energy):
     epms = eph / (60*60*1000)
 
     timediff = time.time() * 1000 - old_time
-    energy_delta = int(time * epms)
+    energy_delta = int(timediff * epms)
     new_energy = old_energy + energy_delta - spent_energy
 
     if new_energy > eph:
         new_energy = eph
 
-    await cur.execute(f'UPDATE TABLE Players SET energy = {new_energy}, energy_time = {time.time() * 1000} WHERE tgid = {tgid}')
+    await cur.execute(f'UPDATE Players SET energy = {new_energy}, energy_time = {time.time() * 1000} WHERE tgid = {tgid}')
     await cur.execute('COMMIT')
 
 
@@ -312,6 +312,7 @@ async def update_clicks(tgid=0, query_id='', count=''):
 
         if now - last_time < 4:
             strike = True
+            print('STRIKE for <4 delay')
 
         old_strikes = (await (await cur.execute(f'SELECT strikes FROM Players WHERE tgid = {tgid}')).fetchone())[0]
 
@@ -334,7 +335,7 @@ async def update_clicks(tgid=0, query_id='', count=''):
 
     await process_energy(tgid, count)
 
-    return {'stale': '0', 'time': ms_time, 'banned': '0', 'clicks': str(new_clicks), 'energy': str(await (await cur.execute(f'SELECT energy FROM Players WHERE tgid = {tgid}')).fetchone())}
+    return {'stale': '0', 'time': ms_time, 'banned': '0', 'clicks': str(new_clicks), 'energy': str((await (await cur.execute(f'SELECT energy FROM Players WHERE tgid = {tgid}')).fetchone())[0])}
 
 
 if __name__ == '__main__':
