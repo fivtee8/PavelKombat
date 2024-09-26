@@ -247,6 +247,24 @@ async def set_query_id(tgid=0, query_id=''):
     return {}
 
 
+async def process_energy(tgid, spent_energy):
+    old_time, old_energy = await (await cur.execute(f'SELECT energy_time, energy FROM Players WHERE tgid = {tgid}')).fetchone()[0]
+
+    # calculate energy per second
+    eph = await (await cur.execute('SELECT Value FROM Params WHERE Key = "eph"')).fetchone()[0]
+    epms = eph / (60*60*1000)
+
+    timediff = time.time() * 1000 - old_time
+    energy_delta = int(time * epms)
+    new_energy = old_energy + energy_delta - spent_energy
+
+    if new_energy > eph:
+        new_energy = eph
+
+    await cur.execute(f'UPDATE TABLE Players SET energy = {new_energy}, energy_time = {time.time() * 1000} WHERE tgid = {tgid}')
+    await cur.execute('COMMIT')
+
+
 @app.route('/put/clickcount/<tgid>/<query_id>/<count>')
 async def update_clicks(tgid=0, query_id='', count=''):
     banned = False
@@ -314,7 +332,9 @@ async def update_clicks(tgid=0, query_id='', count=''):
     await cur.execute(f'UPDATE Players SET clicks = {new_clicks}, time = {now} WHERE tgid = {tgid}')
     await cur.execute('COMMIT')
 
-    return {'stale': '0', 'time': ms_time, 'banned': '0', 'clicks': str(new_clicks)}
+    await process_energy(tgid, count)
+
+    return {'stale': '0', 'time': ms_time, 'banned': '0', 'clicks': str(new_clicks), 'energy': str(await (await cur.execute(f'SELECT energy FROM Players WHERE tgid = {tgid}')).fetchone())}
 
 
 if __name__ == '__main__':
