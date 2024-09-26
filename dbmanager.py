@@ -248,10 +248,10 @@ async def set_query_id(tgid=0, query_id=''):
 
 
 async def process_energy(tgid, spent_energy):
-    old_time, old_energy = await (await cur.execute(f'SELECT energy_time, energy FROM Players WHERE tgid = {tgid}')).fetchone()[0]
+    old_time, old_energy = await (await cur.execute(f'SELECT energy_time, energy FROM Players WHERE tgid = {tgid}')).fetchone()
 
     # calculate energy per second
-    eph = await (await cur.execute('SELECT Value FROM Params WHERE Key = "eph"')).fetchone()[0]
+    eph = await (await cur.execute('SELECT Value FROM Params WHERE Key = "eph"')).fetchone()
     epms = eph / (60*60*1000)
 
     timediff = time.time() * 1000 - old_time
